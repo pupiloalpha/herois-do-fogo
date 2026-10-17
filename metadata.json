@@ -2,5 +2,7 @@
   "name": "Heróis do Fogo: Missão 10 Andares",
   "description": "Jogo arcade PWA de resgate e combate a incêndio com os bombeiros Foguinho e Faísca subindo 10 andares de desafios.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

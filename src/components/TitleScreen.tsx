@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { CharacterId } from '../game/types';
 import { CHARACTERS } from '../game/charactersData';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
-import { Volume2, VolumeX, Shield, Zap, Heart, Flame, HelpCircle, Play } from 'lucide-react';
+import { Volume2, VolumeX, Zap, Heart, Flame, HelpCircle, Play } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface TitleScreenProps {
@@ -37,7 +37,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   }, [onStartGame]);
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-slate-950 text-white flex flex-col justify-between overflow-y-auto overflow-x-hidden p-4 md:p-8 select-none">
+    <div className="relative w-full h-full min-h-[100dvh] bg-slate-950 text-white flex flex-col justify-between overflow-y-auto overscroll-contain p-3 sm:p-6 md:p-8 pb-12 select-none">
       {/* Background illustration / hero art with subtle vignette */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-25 filter blur-[2px] scale-105 pointer-events-none"
@@ -46,24 +46,24 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/90 pointer-events-none" />
 
       {/* Top Bar: CBMMG Badge & Utilities */}
-      <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto">
-        <div className="flex items-center gap-3">
+      <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto shrink-0 mb-4">
+        <div className="flex items-center gap-2.5">
           <img 
             src="/icon.svg" 
             alt="Brasão CBMMG" 
-            className="w-11 h-11 drop-shadow-md rounded-xl"
+            className="w-9 h-9 sm:w-11 sm:h-11 drop-shadow-md rounded-xl"
           />
           <div>
-            <span className="text-[10px] md:text-xs font-bold tracking-widest text-amber-400 uppercase block">
+            <span className="text-[10px] md:text-xs font-bold tracking-widest text-amber-400 uppercase block leading-tight">
               Corpo de Bombeiros Militar de MG
             </span>
-            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
               Operação Resgate Vertical
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <PWAInstallButton />
           
           <button
@@ -71,10 +71,10 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
               sounds.playClick();
               onOpenInstructions();
             }}
-            className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95"
+            className="p-2 sm:p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95"
             title="Como Jogar"
           >
-            <HelpCircle className="w-5 h-5 text-amber-400" />
+            <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
           </button>
 
           <button
@@ -82,73 +82,73 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
               sounds.playClick();
               onToggleMute();
             }}
-            className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95"
+            className="p-2 sm:p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95"
             title={isMuted ? 'Ativar Som' : 'Silenciar'}
           >
-            {isMuted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5 text-emerald-400" />}
+            {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
           </button>
         </div>
       </header>
 
       {/* Centerpiece: Title Lockup & Character Selection */}
-      <main className="relative z-10 w-full max-w-5xl mx-auto my-auto py-4 flex flex-col items-center text-center">
+      <main className="relative z-10 w-full max-w-5xl mx-auto my-auto py-2 sm:py-4 flex flex-col items-center text-center">
         {/* Title Lockup */}
-        <div className="mb-6 space-y-1">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold tracking-wider uppercase mb-2 animate-pulse">
+        <div className="mb-4 sm:mb-6 space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-1.5 animate-pulse">
             <Flame className="w-3.5 h-3.5" /> Edifício em Chamas · 10 Andares
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight uppercase leading-none drop-shadow-2xl">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight uppercase leading-none drop-shadow-2xl">
             <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
               HERÓIS DO FOGO
             </span>
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Escolha seu bombeiro, escale os 10 andares, apague focos de incêndio, feche válvulas de gás, desligue painéis energizados e salve pessoas e animais!
+          <p className="text-slate-400 text-xs sm:text-base max-w-xl mx-auto font-medium px-2">
+            Escolha seu bombeiro, escale os 10 andares, apague focos de incêndio, feche válvulas de gás, desligue painéis energizados e salve vidas!
           </p>
         </div>
 
         {/* Character Selection Cards */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mb-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mb-5 sm:mb-6">
           {/* Foguinho Card */}
           <div
             onClick={() => {
               sounds.playClick();
               onSelectCharacter('foguinho');
             }}
-            className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border-2 text-left relative overflow-hidden ${
+            className={`cursor-pointer rounded-2xl p-3 sm:p-4 transition-all duration-200 border-2 text-left relative overflow-hidden ${
               selectedCharacter === 'foguinho'
-                ? 'bg-slate-900/90 border-amber-400 shadow-2xl ring-4 ring-amber-400/20 scale-[1.02]'
+                ? 'bg-slate-900/90 border-amber-400 shadow-2xl ring-4 ring-amber-400/20 scale-[1.01]'
                 : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100'
             }`}
           >
             {selectedCharacter === 'foguinho' && (
-              <div className="absolute top-3 right-3 bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="absolute top-2.5 right-2.5 bg-amber-400 text-slate-950 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                 SELECIONADO
               </div>
             )}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-3 sm:gap-4 items-center">
               <img
                 src={CHARACTERS.foguinho.avatarUrl}
                 alt="Foguinho"
-                className="w-24 h-24 rounded-2xl object-cover border-2 border-amber-400/60 shadow-lg"
+                className="w-18 h-18 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-amber-400/60 shadow-lg shrink-0"
               />
-              <div className="space-y-1">
-                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+              <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] font-bold text-amber-400 uppercase tracking-wider block truncate">
                   {CHARACTERS.foguinho.gender} · {CHARACTERS.foguinho.role}
                 </span>
-                <h3 className="text-xl font-black text-white">{CHARACTERS.foguinho.name}</h3>
-                <p className="text-xs text-slate-300 line-clamp-2">
+                <h3 className="text-lg sm:text-xl font-black text-white">{CHARACTERS.foguinho.name}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-300 line-clamp-2">
                   {CHARACTERS.foguinho.specialTrait}
                 </p>
               </div>
             </div>
 
             {/* Attributes Bars */}
-            <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-slate-800/80 space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
               <div className="flex justify-between items-center text-slate-300">
                 <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 text-red-400" /> Resistência Térmica:</span>
-                <span className="font-bold text-amber-300">135 HP (+45% defesa fogo)</span>
+                <span className="font-bold text-amber-300">135 HP (-45% dano)</span>
               </div>
               <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                 <div className="bg-amber-400 h-full w-[95%]" />
@@ -156,7 +156,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
               <div className="flex justify-between items-center text-slate-300">
                 <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-cyan-400" /> Velocidade:</span>
-                <span className="font-bold text-slate-200">195 km/h (Firme & Constante)</span>
+                <span className="font-bold text-slate-200">195 km/h (Firme)</span>
               </div>
               <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                 <div className="bg-cyan-400 h-full w-[70%]" />
@@ -170,36 +170,36 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
               sounds.playClick();
               onSelectCharacter('faisca');
             }}
-            className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border-2 text-left relative overflow-hidden ${
+            className={`cursor-pointer rounded-2xl p-3 sm:p-4 transition-all duration-200 border-2 text-left relative overflow-hidden ${
               selectedCharacter === 'faisca'
-                ? 'bg-slate-900/90 border-orange-500 shadow-2xl ring-4 ring-orange-500/20 scale-[1.02]'
+                ? 'bg-slate-900/90 border-orange-500 shadow-2xl ring-4 ring-orange-500/20 scale-[1.01]'
                 : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100'
             }`}
           >
             {selectedCharacter === 'faisca' && (
-              <div className="absolute top-3 right-3 bg-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="absolute top-2.5 right-2.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                 SELECIONADA
               </div>
             )}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-3 sm:gap-4 items-center">
               <img
                 src={CHARACTERS.faisca.avatarUrl}
                 alt="Faísca"
-                className="w-24 h-24 rounded-2xl object-cover border-2 border-orange-500/60 shadow-lg"
+                className="w-18 h-18 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-orange-500/60 shadow-lg shrink-0"
               />
-              <div className="space-y-1">
-                <span className="text-[11px] font-bold text-orange-400 uppercase tracking-wider">
+              <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                <span className="text-[10px] sm:text-[11px] font-bold text-orange-400 uppercase tracking-wider block truncate">
                   {CHARACTERS.faisca.gender} · {CHARACTERS.faisca.role}
                 </span>
-                <h3 className="text-xl font-black text-white">{CHARACTERS.faisca.name}</h3>
-                <p className="text-xs text-slate-300 line-clamp-2">
+                <h3 className="text-lg sm:text-xl font-black text-white">{CHARACTERS.faisca.name}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-300 line-clamp-2">
                   {CHARACTERS.faisca.specialTrait}
                 </p>
               </div>
             </div>
 
             {/* Attributes Bars */}
-            <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1.5 text-xs">
+            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-slate-800/80 space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
               <div className="flex justify-between items-center text-slate-300">
                 <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-orange-400" /> Velocidade:</span>
                 <span className="font-bold text-orange-300">255 km/h (+31% Ágil)</span>
@@ -210,7 +210,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
               <div className="flex justify-between items-center text-slate-300">
                 <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 text-red-400" /> Resistência:</span>
-                <span className="font-bold text-slate-200">100 HP (Resgate Rápido)</span>
+                <span className="font-bold text-slate-200">100 HP (Ágil)</span>
               </div>
               <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                 <div className="bg-red-400 h-full w-[75%]" />
@@ -225,22 +225,22 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             sounds.playClick();
             onStartGame();
           }}
-          className="group relative inline-flex items-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-size-200 text-slate-950 font-black text-lg md:text-xl shadow-2xl hover:shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all duration-200"
+          className="group relative inline-flex items-center gap-2.5 px-7 sm:px-10 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-size-200 text-slate-950 font-black text-base sm:text-xl shadow-2xl hover:shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all duration-200"
         >
-          <Play className="w-6 h-6 fill-slate-950 text-slate-950" />
-          <span>INICIAR MISSÃO COM {current.name.toUpperCase()}</span>
+          <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-slate-950 text-slate-950" />
+          <span>INICIAR COM {current.name.toUpperCase()}</span>
         </button>
 
         {/* Control hint line */}
-        <div className="mt-4 text-xs text-slate-400 font-mono tracking-wide">
-          <span className="hidden md:inline">WASD Mover · Espaço Extintor · E Interagir/Salvar · Shift Correr · Enter Iniciar</span>
+        <div className="mt-3 text-[11px] sm:text-xs text-slate-400 font-mono tracking-wide">
+          <span className="hidden md:inline">WASD Mover · Espaço Extintor · E Interagir · Shift Correr · Enter Iniciar</span>
           <span className="md:hidden">Controles por Joystick e Botões de Toque na Tela</span>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full max-w-6xl mx-auto flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-900">
-        <span>Edição Oficial · Baseado no Corpo de Bombeiros Militar de Minas Gerais</span>
+      <footer className="relative z-10 w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-xs text-slate-500 pt-3 border-t border-slate-900 gap-1 text-center shrink-0">
+        <span>Corpo de Bombeiros Militar de Minas Gerais (CBMMG)</span>
         <span>PWA Offline Suportado · 60 FPS Phaser.js</span>
       </footer>
     </div>

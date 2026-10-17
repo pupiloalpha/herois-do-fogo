@@ -8,8 +8,8 @@ interface InstructionsModalProps {
 
 export const InstructionsModal: React.FC<InstructionsModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in select-none">
-      <div className="w-full max-w-2xl max-h-[90vh] rounded-3xl border border-orange-500/40 bg-slate-900/95 p-6 shadow-2xl text-white flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
+      <div className="w-full max-w-2xl max-h-[92dvh] rounded-3xl border border-orange-500/40 bg-slate-900/98 p-4 sm:p-6 shadow-2xl text-white flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">

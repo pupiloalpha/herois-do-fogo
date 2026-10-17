@@ -131,7 +131,7 @@ export default function App() {
   const currentFloorData = FLOORS_DATA.find(f => f.floorNumber === currentFloor) || FLOORS_DATA[0];
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
+    <div className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-slate-950 font-sans select-none">
       {/* Offline Connectivity Notification */}
       <OfflineIndicator />
 

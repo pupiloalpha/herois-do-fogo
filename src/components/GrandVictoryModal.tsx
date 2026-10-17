@@ -45,8 +45,8 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in select-none overflow-y-auto">
-      <div className="w-full max-w-lg rounded-3xl border-3 border-amber-400 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl text-center text-white relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-4 animate-fade-in select-none overflow-y-auto">
+      <div className="w-full max-w-lg max-h-[92dvh] overflow-y-auto overscroll-contain rounded-3xl border-3 border-amber-400 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-5 sm:p-8 shadow-2xl text-center text-white relative">
         {/* CBMMG Ribbon Badge */}
         <div className="relative inline-block mb-4">
           <img
