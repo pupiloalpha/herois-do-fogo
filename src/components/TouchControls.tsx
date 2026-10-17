@@ -6,6 +6,8 @@ interface TouchControlsProps {
   onSpray: (spraying: boolean) => void;
   onSprint: (sprinting: boolean) => void;
   onInteract: () => void;
+  isStandalone?: boolean;
+  isFullscreen?: boolean;
 }
 
 export const TouchControls: React.FC<TouchControlsProps> = ({
@@ -13,6 +15,8 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   onSpray,
   onSprint,
   onInteract,
+  isStandalone = false,
+  isFullscreen = false,
 }) => {
   const joystickBaseRef = useRef<HTMLDivElement>(null);
   const [joystickPos, setJoystickPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -21,6 +25,10 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
   const [isSpraying, setIsSpraying] = useState(false);
   const [isSprinting, setIsSprinting] = useState(false);
+  const [extraLift, setExtraLift] = useState<boolean>(() => {
+    // If not standalone and not fullscreen, default to lifted controls so browser bars don't cover them
+    return !isStandalone && !isFullscreen;
+  });
   const sprayMinTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sprayPressedRef = useRef<boolean>(false);
 
@@ -111,7 +119,13 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 pointer-events-none z-40 select-none flex justify-between items-end p-2.5 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div
+      className={`fixed inset-x-0 bottom-0 pointer-events-none z-40 select-none flex justify-between items-end p-2 sm:p-4 transition-all duration-200 ${
+        extraLift
+          ? 'pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+26px))]'
+          : 'pb-[max(0.85rem,calc(env(safe-area-inset-bottom)+6px))]'
+      }`}
+    >
       {/* Left: Virtual Joystick */}
       <div className="pointer-events-auto touch-none">
         <div
@@ -140,6 +154,17 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
             <span className="text-white text-xs font-black">🚒</span>
           </div>
         </div>
+      </div>
+
+      {/* Center Height / Elevation Toggle on mobile */}
+      <div className="pointer-events-auto pb-1 flex flex-col items-center">
+        <button
+          onClick={() => setExtraLift(!extraLift)}
+          className="text-[9px] font-bold text-slate-400 hover:text-white bg-slate-900/85 hover:bg-slate-800 border border-slate-700/70 rounded-full px-2 py-0.5 shadow-md active:scale-95 transition flex items-center gap-1 backdrop-blur-xs"
+          title="Ajustar posição dos controles para evitar a barra do navegador"
+        >
+          <span>{extraLift ? '▼ Baixar' : '▲ Elevar'}</span>
+        </button>
       </div>
 
       {/* Right: Ergonomic Action Buttons */}

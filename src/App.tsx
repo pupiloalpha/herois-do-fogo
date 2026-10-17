@@ -18,10 +18,20 @@ import { InstructionsModal } from './components/InstructionsModal';
 import { PauseModal } from './components/PauseModal';
 import { OfflineIndicator } from './pwa/OfflineIndicator';
 import { sounds } from './audio/SoundManager';
+import { useFullscreen } from './hooks/useFullscreen';
+import { useVisualViewport } from './hooks/useVisualViewport';
+import { getIsStandalone } from './pwa/usePWAInstall';
 
 type GameState = 'title' | 'briefing' | 'playing' | 'paused' | 'floor_clear' | 'game_over' | 'grand_victory';
 
 export default function App() {
+  // Sync real visible screen dimensions with CSS variables
+  useVisualViewport();
+
+  // Fullscreen mode controller to hide browser navigation bars
+  const { isFullscreen, toggleFullscreen, enterFullscreen, isSupported: isFullscreenSupported } = useFullscreen();
+  const [isStandalone] = useState(() => getIsStandalone());
+
   const [gameState, setGameState] = useState<GameState>('title');
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterId>('foguinho');
   const [currentFloor, setCurrentFloor] = useState<number>(1);
@@ -81,10 +91,14 @@ export default function App() {
 
   // Handlers for game flow
   const handleStartFromTitle = useCallback(() => {
+    // If mobile browser, attempt to enter fullscreen on user click/tap
+    if (isFullscreenSupported && !isFullscreen && !isStandalone && typeof window !== 'undefined' && window.innerWidth < 768) {
+      enterFullscreen();
+    }
     setCurrentFloor(1);
     setScore(0);
     setGameState('briefing');
-  }, []);
+  }, [isFullscreenSupported, isFullscreen, isStandalone, enterFullscreen]);
 
   const handleStartFloor = useCallback(() => {
     setGameState('playing');
@@ -131,7 +145,10 @@ export default function App() {
   const currentFloorData = FLOORS_DATA.find(f => f.floorNumber === currentFloor) || FLOORS_DATA[0];
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] overflow-hidden bg-slate-950 font-sans select-none">
+    <div 
+      className="fixed inset-0 w-full overflow-hidden bg-slate-950 font-sans select-none"
+      style={{ height: 'var(--app-height, 100dvh)', width: 'var(--app-width, 100vw)' }}
+    >
       {/* Offline Connectivity Notification */}
       <OfflineIndicator />
 
@@ -149,6 +166,9 @@ export default function App() {
           onOpenInstructions={() => setShowInstructions(true)}
           isMuted={isMuted}
           onToggleMute={handleToggleMute}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
+          isStandalone={isStandalone}
         />
       )}
 
@@ -172,6 +192,8 @@ export default function App() {
             isMuted={isMuted}
             onToggleMute={handleToggleMute}
             onPause={() => setGameState('paused')}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
           />
 
           {/* Mobile Ergonomic Touch Controls */}
@@ -181,6 +203,8 @@ export default function App() {
               onSpray={(spraying) => phaserRef.current?.setSpraying(spraying)}
               onSprint={(sprinting) => phaserRef.current?.setSprinting(sprinting)}
               onInteract={() => phaserRef.current?.triggerInteract()}
+              isStandalone={isStandalone}
+              isFullscreen={isFullscreen}
             />
           )}
 
@@ -202,6 +226,8 @@ export default function App() {
               onRestartFloor={handleRetryFloor}
               onHome={handleReturnHome}
               onToggleMute={handleToggleMute}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
             />
           )}
 

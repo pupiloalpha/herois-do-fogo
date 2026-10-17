@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, RotateCcw, Home, Volume2, VolumeX } from 'lucide-react';
+import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface PauseModalProps {
@@ -10,6 +10,8 @@ interface PauseModalProps {
   onRestartFloor: () => void;
   onHome: () => void;
   onToggleMute: () => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export const PauseModal: React.FC<PauseModalProps> = ({
@@ -20,6 +22,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onRestartFloor,
   onHome,
   onToggleMute,
+  isFullscreen = false,
+  onToggleFullscreen,
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
@@ -67,6 +71,19 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
             <span>{isMuted ? 'ATIVAR SONS' : 'SILENCIAR SONS'}</span>
           </button>
+
+          {onToggleFullscreen && (
+            <button
+              onClick={() => {
+                sounds.playClick();
+                onToggleFullscreen();
+              }}
+              className="w-full py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-amber-500/30"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+              <span>{isFullscreen ? 'SAIR DA TELA CHEIA' : 'ENTRAR EM TELA CHEIA (OCULTAR BARRAS)'}</span>
+            </button>
+          )}
 
           <button
             onClick={() => {

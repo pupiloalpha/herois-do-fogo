@@ -138,6 +138,28 @@ Uma vez instalado, o jogo abre em tela cheia (modo *standalone*) sem barras de n
 
 ---
 
+## 📱 Prevenção de Barras do Navegador (Sem Instalar o PWA)
+
+Se o usuário jogar diretamente no navegador sem instalar o app, implementamos 4 soluções combinadas para garantir que nenhuma barra de navegação ou URL cubra elementos do jogo:
+
+1. **⛶ Modo Tela Cheia (Fullscreen API)**:
+   - Botão **[⛶ Tela Cheia]** disponível na tela inicial, no topo do HUD e no menu de pausa.
+   - Em navegadores Android (Chrome, Samsung Internet, Edge, Firefox) e Desktop, um único toque oculta completamente a barra de endereços, guias e barra de navegação inferior do sistema.
+   - Ao iniciar a partida no celular, o jogo solicita automaticamente o modo tela cheia.
+
+2. **📐 Sincronização Dinâmica com `window.visualViewport`**:
+   - O jogo monitora a altura visível real da tela (`visualViewport.height`) e ajusta variáveis CSS (`--app-height`) e a escala do canvas do Phaser em tempo real.
+   - Mesmo que as barras do navegador expandam ou recolham, nada na tela é cortado ou empurrado para fora da visão.
+
+3. **↕ Botão de Elevação dos Controles [▲ Elevar]**:
+   - Na parte inferior central da tela, o jogador pode tocar em **[▲ Elevar]** para levantar o joystick virtual e os botões de ação caso a barra inferior do navegador do celular seja espessa.
+   - O jogo ativa automaticamente uma margem de segurança extra (`safe-area-inset-bottom + 26px`) quando detecta que não está em modo standalone.
+
+4. **🍎 Guia Prático para iOS Safari**:
+   - Como a Apple restringe a API de Fullscreen em abas normais do Safari no iPhone, o jogo exibe um modal ilustrado ensinando a tocar em **Compartilhar (quadrado com seta) ➔ Adicionar à Tela de Início**, criando o ícone que abre o jogo em tela cheia definitiva sem nenhuma barra do Safari.
+
+---
+
 ## 🦺 Dicas de Segurança e Prevenção do CBMMG
 
 Em situações reais de emergência com incêndio:

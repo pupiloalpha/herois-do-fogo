@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GameHUDState } from '../game/types';
-import { Heart, Flame, Clock, Trophy, Users, Volume2, VolumeX, Pause, Sparkles, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
+import { Heart, Flame, Clock, Trophy, Users, Volume2, VolumeX, Pause, Sparkles, ChevronDown, ChevronUp, Maximize, Minimize } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface GameHUDProps {
@@ -8,6 +8,8 @@ interface GameHUDProps {
   isMuted: boolean;
   onToggleMute: () => void;
   onPause: () => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export const GameHUD: React.FC<GameHUDProps> = ({
@@ -15,6 +17,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   isMuted,
   onToggleMute,
   onPause,
+  isFullscreen = false,
+  onToggleFullscreen,
 }) => {
   const [showMobileMissions, setShowMobileMissions] = useState(false);
 
@@ -49,7 +53,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-2 sm:p-3 select-none">
+    <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-2 sm:p-3 pt-[max(0.6rem,env(safe-area-inset-top))] pb-[max(0.6rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] select-none">
       {/* Top perimeter cluster */}
       <div className="flex items-start justify-between w-full gap-1.5 sm:gap-2">
         {/* Left: Vitals (Health, Extinguisher, Heat) */}
@@ -141,6 +145,19 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         <div className="flex flex-col items-end gap-1.5 sm:gap-2 shrink-0">
           {/* Controls bar */}
           <div className="flex items-center gap-1.5 pointer-events-auto">
+            {onToggleFullscreen && (
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  onToggleFullscreen();
+                }}
+                className="p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-white transition shadow-md active:scale-95"
+                title={isFullscreen ? 'Sair da Tela Cheia' : 'Entrar em Tela Cheia'}
+              >
+                {isFullscreen ? <Minimize className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              </button>
+            )}
+
             <button
               onClick={() => {
                 sounds.playClick();
@@ -151,6 +168,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             >
               {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />}
             </button>
+
             <button
               onClick={() => {
                 sounds.playClick();
@@ -238,7 +256,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       </div>
 
-      {/* Floating prompt action pill (positioned above joystick & action buttons) */}
+      {/* Floating prompt action pill (positioned safely above joystick & action buttons) */}
       <div className="flex justify-center mb-28 sm:mb-24 md:mb-6 pointer-events-auto">
         {hud.promptActionText && (
           <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white font-black text-xs sm:text-sm px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full shadow-2xl border-2 border-amber-300/80 animate-bounce flex items-center gap-1.5 sm:gap-2">

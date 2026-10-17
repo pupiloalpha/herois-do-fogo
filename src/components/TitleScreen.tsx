@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterId } from '../game/types';
 import { CHARACTERS } from '../game/charactersData';
 import { PWAInstallButton } from '../pwa/PWAInstallButton';
-import { Volume2, VolumeX, Zap, Heart, Flame, HelpCircle, Play } from 'lucide-react';
+import { Volume2, VolumeX, Zap, Heart, Flame, HelpCircle, Play, Maximize, Minimize, Smartphone, Info } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
+import { FullscreenGuideModal } from './FullscreenGuideModal';
 
 interface TitleScreenProps {
   selectedCharacter: CharacterId;
@@ -12,6 +13,9 @@ interface TitleScreenProps {
   onOpenInstructions: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
+  isStandalone?: boolean;
 }
 
 export const TitleScreen: React.FC<TitleScreenProps> = ({
@@ -21,8 +25,12 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   onOpenInstructions,
   isMuted,
   onToggleMute,
+  isFullscreen = false,
+  onToggleFullscreen,
+  isStandalone = false,
 }) => {
   const current = CHARACTERS[selectedCharacter];
+  const [showGuide, setShowGuide] = useState(false);
 
   // Enter or Space to start
   useEffect(() => {
@@ -65,6 +73,20 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           <PWAInstallButton />
+
+          {onToggleFullscreen && (
+            <button
+              onClick={() => {
+                sounds.playClick();
+                onToggleFullscreen();
+              }}
+              className="p-2 sm:p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-amber-400 hover:text-white transition shadow-sm active:scale-95 flex items-center gap-1.5"
+              title={isFullscreen ? 'Sair da Tela Cheia' : 'Jogar em Tela Cheia (Ocultar Barras)'}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />}
+              <span className="hidden sm:inline text-xs font-bold">{isFullscreen ? 'Janela' : 'Tela Cheia'}</span>
+            </button>
+          )}
           
           <button
             onClick={() => {
@@ -89,6 +111,44 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           </button>
         </div>
       </header>
+
+      {/* Browser Bar Avoidance Tip Banner (Only visible in normal browser mode) */}
+      {!isStandalone && (
+        <div className="relative z-10 w-full max-w-3xl mx-auto mb-3 px-2">
+          <div className="bg-slate-900/85 border border-amber-500/40 rounded-2xl p-2.5 sm:p-3 shadow-lg flex items-center justify-between gap-2.5 backdrop-blur-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base sm:text-lg shrink-0">📱</span>
+              <p className="text-[11px] sm:text-xs text-slate-300 truncate">
+                <span className="text-amber-300 font-bold">Dica de Tela:</span> As barras do navegador cobrem o jogo?
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {onToggleFullscreen && (
+                <button
+                  onClick={() => {
+                    sounds.playClick();
+                    onToggleFullscreen();
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] sm:text-xs font-bold active:scale-95 transition flex items-center gap-1"
+                >
+                  <Maximize className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span>Tela Cheia</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  setShowGuide(true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] sm:text-xs font-semibold active:scale-95 transition flex items-center gap-1"
+              >
+                <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400" />
+                <span>Como Ocultar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Centerpiece: Title Lockup & Character Selection */}
       <main className="relative z-10 w-full max-w-5xl mx-auto my-auto py-2 sm:py-4 flex flex-col items-center text-center">
@@ -243,6 +303,15 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         <span>Corpo de Bombeiros Militar de Minas Gerais (CBMMG)</span>
         <span>PWA Offline Suportado · 60 FPS Phaser.js</span>
       </footer>
+
+      {/* Guide Modal on how to hide browser bars */}
+      {showGuide && (
+        <FullscreenGuideModal
+          onClose={() => setShowGuide(false)}
+          onEnterFullscreen={onToggleFullscreen}
+          isFullscreen={isFullscreen}
+        />
+      )}
     </div>
   );
 };
