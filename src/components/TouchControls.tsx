@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { sounds } from '../audio/SoundManager';
 
 interface TouchControlsProps {
@@ -21,6 +21,15 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
   const [isSpraying, setIsSpraying] = useState(false);
   const [isSprinting, setIsSprinting] = useState(false);
+  const sprayMinTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const sprayPressedRef = useRef<boolean>(false);
+
+  // Clear timers on unmount
+  useEffect(() => {
+    return () => {
+      if (sprayMinTimerRef.current) clearTimeout(sprayMinTimerRef.current);
+    };
+  }, []);
 
   // Joystick touch handlers
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -63,7 +72,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
     const dx = clientX - centerX;
     const dy = clientY - centerY;
-    const maxRadius = 40;
+    const maxRadius = 42;
 
     const dist = Math.hypot(dx, dy);
     const clampedDist = Math.min(dist, maxRadius);
@@ -78,6 +87,27 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     const normX = stickX / maxRadius;
     const normY = stickY / maxRadius;
     onMove(normX, normY);
+  };
+
+  // Spray button triggers with guaranteed minimum burst time
+  const startSpraying = () => {
+    sprayPressedRef.current = true;
+    setIsSpraying(true);
+    onSpray(true);
+
+    if (sprayMinTimerRef.current) clearTimeout(sprayMinTimerRef.current);
+  };
+
+  const stopSpraying = () => {
+    sprayPressedRef.current = false;
+    // Keep spraying for at least 280ms if quick tap so fires always take a solid burst
+    if (sprayMinTimerRef.current) clearTimeout(sprayMinTimerRef.current);
+    sprayMinTimerRef.current = setTimeout(() => {
+      if (!sprayPressedRef.current) {
+        setIsSpraying(false);
+        onSpray(false);
+      }
+    }, 280);
   };
 
   return (
@@ -126,6 +156,11 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
             setIsSprinting(false);
             onSprint(false);
           }}
+          onTouchCancel={(e) => {
+            e.preventDefault();
+            setIsSprinting(false);
+            onSprint(false);
+          }}
           onMouseDown={() => {
             setIsSprinting(true);
             onSprint(true);
@@ -137,7 +172,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl transition-all ${
             isSprinting
               ? 'bg-amber-500 border-amber-200 scale-95 ring-4 ring-amber-400/30'
-              : 'bg-slate-900/85 border-amber-500/60 text-amber-300'
+              : 'bg-slate-900/85 border-amber-500/60 text-amber-300 active:scale-95'
           }`}
           title="Correr"
         >
@@ -167,31 +202,33 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
         <button
           onTouchStart={(e) => {
             e.preventDefault();
-            setIsSpraying(true);
-            onSpray(true);
+            startSpraying();
           }}
           onTouchEnd={(e) => {
             e.preventDefault();
-            setIsSpraying(false);
-            onSpray(false);
+            stopSpraying();
+          }}
+          onTouchCancel={(e) => {
+            e.preventDefault();
+            stopSpraying();
           }}
           onMouseDown={() => {
-            setIsSpraying(true);
-            onSpray(true);
+            startSpraying();
           }}
           onMouseUp={() => {
-            setIsSpraying(false);
-            onSpray(false);
+            stopSpraying();
           }}
           className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-3 flex flex-col items-center justify-center shadow-2xl transition-all ${
             isSpraying
-              ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-200 scale-95 ring-4 ring-cyan-400/50'
-              : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white'
+              ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 scale-95 ring-4 ring-cyan-400/60'
+              : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
           }`}
           title="Extinguir Chamas"
         >
-          <span className="text-xl sm:text-2xl animate-pulse">🧯</span>
-          <span className="text-[9px] sm:text-[10px] font-black tracking-wider uppercase mt-0.5">EXTINGUIR</span>
+          <span className={`text-xl sm:text-2xl ${isSpraying ? 'scale-110' : 'animate-pulse'}`}>🧯</span>
+          <span className="text-[9px] sm:text-[10px] font-black tracking-wider uppercase mt-0.5">
+            {isSpraying ? 'LANÇANDO' : 'EXTINGUIR'}
+          </span>
         </button>
       </div>
     </div>

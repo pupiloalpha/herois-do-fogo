@@ -467,28 +467,47 @@ export class GameScene extends Phaser.Scene {
     }
 
     // 2. Extinguisher Spraying
+    // 2. Extinguisher Spraying
     const wantSpray = (this.keySpace?.isDown || this.touchSpraying);
     if (wantSpray && this.extinguisher > 0) {
       this.isSpraying = true;
-      this.extinguisher = Math.max(0, this.extinguisher - 18 * dt);
+      this.extinguisher = Math.max(0, this.extinguisher - 14 * dt);
 
-      // Emit water particles
-      const sprayAngle = this.facingAngle;
-      const sprayOriginX = this.player.x + Math.cos(sprayAngle) * 20;
-      const sprayOriginY = this.player.y + Math.sin(sprayAngle) * 20;
+      // Active water spray shields firefighter from ambient heat
+      this.heatMeter = Math.max(0, this.heatMeter - 45 * dt);
 
-      this.waterParticles.emitParticleAt(sprayOriginX, sprayOriginY, 2);
+      // Auto-target nearby active fire within forward arc (up to 150px)
+      let sprayAngle = this.facingAngle;
+      let minFireDist = 150;
+      for (const f of this.fires) {
+        const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y);
+        if (d < minFireDist) {
+          const ang = Math.atan2(f.y - this.player.y, f.x - this.player.x);
+          const diff = Math.abs(sprayAngleDifference(this.facingAngle, ang));
+          if (diff < 1.35) {
+            minFireDist = d;
+            sprayAngle = ang;
+          }
+        }
+      }
+
+      // Spray origin slightly forward from player
+      const sprayOriginX = this.player.x + Math.cos(sprayAngle) * 18;
+      const sprayOriginY = this.player.y + Math.sin(sprayAngle) * 18;
+
+      // Emit high-pressure foam/water particles
+      this.waterParticles.emitParticleAt(sprayOriginX, sprayOriginY, 3);
       sounds.startSpray();
 
-      // Check hits against fires
+      // Check hits against fires (both close-range overlap and forward spray cone)
       this.checkSprayAgainstFires(sprayOriginX, sprayOriginY, sprayAngle, dt * stats.extinguishPower);
     } else {
       if (this.isSpraying) {
         sounds.stopSpray();
         this.isSpraying = false;
       }
-      // Slowly regenerate 4% tank if idle
-      this.extinguisher = Math.min(this.maxExtinguisher, this.extinguisher + 2.5 * dt);
+      // Slowly regenerate extinguisher tank when idle
+      this.extinguisher = Math.min(this.maxExtinguisher, this.extinguisher + 4.0 * dt);
     }
 
     // 3. Proximity and Heat Check
@@ -506,38 +525,46 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkSprayAgainstFires(ox: number, oy: number, angle: number, power: number) {
-    const sprayDist = 110;
-    const sprayArc = 0.65; // ~37 degrees cone
+    const sprayDist = 135;
+    const sprayArc = 1.25; // wide ~72 degree cone for forgiving mobile touch play
 
     for (let i = this.fires.length - 1; i >= 0; i--) {
       const f = this.fires[i];
+      // Distance directly from player's center
+      const distFromPlayer = Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y);
+
+      // 1. Direct Proximity: player standing directly on or right beside the fire!
+      const isStandingOnFire = distFromPlayer <= (f.radius + 38);
+
+      // 2. Directional Stream: fire inside forward water cone
       const dx = f.x - ox;
       const dy = f.y - oy;
-      const dist = Math.hypot(dx, dy);
+      const distFromNozzle = Math.hypot(dx, dy);
+      const fireAngle = Math.atan2(dy, dx);
+      const diff = Math.abs(sprayAngleDifference(angle, fireAngle));
+      const isInSprayCone = distFromNozzle <= (sprayDist + f.radius) && diff < sprayArc;
 
-      if (dist < sprayDist + f.radius) {
-        const fireAngle = Math.atan2(dy, dx);
-        let diff = Math.abs(sprayAngleDifference(angle, fireAngle));
-        if (diff < sprayArc) {
-          // Damaging fire!
-          f.hp -= 42 * power;
-          this.smokeParticles.emitParticleAt(f.x, f.y, 1);
+      if (isStandingOnFire || isInSprayCone) {
+        // High extinguishing power so flames respond immediately and feel punchy
+        const basePower = isStandingOnFire ? 115 : 90;
+        f.hp -= basePower * power;
+        this.smokeParticles.emitParticleAt(f.x, f.y, 2);
 
-          // Fire shrinks as HP decreases
-          const ratio = Math.max(0.2, f.hp / f.maxHp);
-          f.sprite.setScale(ratio * (f.radius / 24));
+        // Visual feedback: fire shrinks and dims as HP drops
+        const ratio = Math.max(0.15, f.hp / f.maxHp);
+        f.sprite.setScale(ratio * (f.radius / 24));
+        f.sprite.setAlpha(0.65 + ratio * 0.35);
 
-          if (f.hp <= 0) {
-            // Extinguished!
-            sounds.playExtinguish();
-            this.smokeParticles.emitParticleAt(f.x, f.y, 8);
-            f.sprite.destroy();
-            this.fires.splice(i, 1);
-            this.extinguishedFiresCount++;
-            this.score += 150;
-            this.showFloatingText(f.x, f.y, '+150 FOGO APAGADO!', '#38bdf8');
-            this.checkExitConditions();
-          }
+        if (f.hp <= 0) {
+          // Extinguished!
+          sounds.playExtinguish();
+          this.smokeParticles.emitParticleAt(f.x, f.y, 10);
+          f.sprite.destroy();
+          this.fires.splice(i, 1);
+          this.extinguishedFiresCount++;
+          this.score += 150;
+          this.showFloatingText(f.x, f.y, '+150 FOGO EXTINTO!', '#38bdf8');
+          this.checkExitConditions();
         }
       }
     }
@@ -551,11 +578,13 @@ export class GameScene extends Phaser.Scene {
     for (const f of this.fires) {
       const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y);
       if (dist < f.radius + 18) {
-        // Direct contact with fire flames!
-        const dmg = (30 * (1 - stats.heatResistance)) * dt;
+        // Direct contact with fire flames
+        // If actively spraying, the water shields the player by 75%
+        const shieldMultiplier = this.isSpraying ? 0.25 : 1.0;
+        const dmg = (30 * (1 - stats.heatResistance) * shieldMultiplier) * dt;
         this.currentHealth -= dmg;
-        this.cameras.main.shake(80, 0.004);
-        if (Math.random() < 0.1) sounds.playHurt();
+        this.cameras.main.shake(60, 0.003);
+        if (Math.random() < 0.08) sounds.playHurt();
       } else if (dist < f.radius + 80) {
         // Radiant heat
         ambientHeat += (1 - dist / (f.radius + 80)) * 25;
