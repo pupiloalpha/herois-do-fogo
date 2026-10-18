@@ -52,8 +52,8 @@ export class TextureGenerator {
     // Floor 9: Penthouse - Luxury Royal Violet Marble
     this.drawTile(scene, 'floor_tile_9', '#4c1d95', '#6d28d9', '#2e1065');
 
-    // Floor 10: Rooftop & Helipad - Heavy Dark Asphalt Deck
-    this.drawTile(scene, 'floor_tile_10', '#18181b', '#27272a', '#09090b');
+    // Floor 10: Rooftop & Helipad - Classic Concrete Deck & Helipad
+    this.drawTile(scene, 'floor_tile_10', '#4b5563', '#6b7280', '#374151');
   }
 
   private static drawTile(scene: Phaser.Scene, key: string, baseColor: string, borderColor: string, accentColor: string, isQuarry: boolean = false) {
@@ -149,12 +149,19 @@ export class TextureGenerator {
       ctx.strokeRect(6, 6, 22, 22);
       ctx.strokeRect(36, 36, 22, 22);
     } else if (key === 'floor_tile_10') {
-      // Rooftop: Heavy industrial asphalt with grip specks
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      // Rooftop: Heavy reinforced concrete deck with industrial seams & grip specks
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.fillRect(10, 10, 3, 3);
       ctx.fillRect(40, 22, 2, 2);
       ctx.fillRect(24, 48, 3, 3);
       ctx.fillRect(52, 54, 2, 2);
+
+      // Concrete expansion seam
+      ctx.strokeStyle = 'rgba(31, 41, 55, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 32); ctx.lineTo(64, 32);
+      ctx.stroke();
     } else {
       // Subtle gloss / texture speckle
       ctx.fillStyle = 'rgba(255,255,255,0.06)';
@@ -180,7 +187,7 @@ export class TextureGenerator {
     this.drawWall(scene, 'wall_tile_7', '#581c87', '#3b0764', '#6b21a8');
     this.drawWall(scene, 'wall_tile_8', '#134e4a', '#042f2e', '#0f766e');
     this.drawWall(scene, 'wall_tile_9', '#3b0764', '#1e0538', '#581c87');
-    this.drawWall(scene, 'wall_tile_10', '#27272a', '#09090b', '#3f3f46');
+    this.drawWall(scene, 'wall_tile_10', '#1f2937', '#111827', '#374151');
   }
 
   private static drawWall(scene: Phaser.Scene, key: string, baseColor: string, darkColor: string, lightColor: string) {
