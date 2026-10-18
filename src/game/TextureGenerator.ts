@@ -25,8 +25,8 @@ export class TextureGenerator {
       this.drawTile(scene, 'floor_tile', '#1e293b', '#334155', '#0f172a');
     }
 
-    // Floor 1: Reception - Warm Terracotta & Beige Marble
-    this.drawTile(scene, 'floor_tile_1', '#78350f', '#92400e', '#451a03');
+    // Floor 1: Reception - Polished Ivory & Sand Marble Floor
+    this.drawTile(scene, 'floor_tile_1', '#e2d9cd', '#b8a690', '#d1c4b2');
 
     // Floor 2: Corporate Office - Professional Navy Blue Carpet
     this.drawTile(scene, 'floor_tile_2', '#1e3a8a', '#2563eb', '#0f172a');
@@ -34,8 +34,8 @@ export class TextureGenerator {
     // Floor 3: Industrial Kitchen - Brick Red Quarry Tile with white grout
     this.drawTile(scene, 'floor_tile_3', '#991b1b', '#b91c1c', '#7f1d1d', true);
 
-    // Floor 4: Datacenter - Cyber Grid Dark Slate with Cyan Accents
-    this.drawTile(scene, 'floor_tile_4', '#090d16', '#0284c7', '#0369a1');
+    // Floor 4: Datacenter - Cyber Grid Steel Slate with Glowing Cyan Accents
+    this.drawTile(scene, 'floor_tile_4', '#1e293b', '#0ea5e9', '#0f172a');
 
     // Floor 5: Residential - Cozy Emerald Green Carpet & Wood
     this.drawTile(scene, 'floor_tile_5', '#065f46', '#047857', '#022c22');
@@ -77,7 +77,28 @@ export class TextureGenerator {
     ctx.fillRect(34, 34, 26, 26);
 
     // Specific floor motifs:
-    if (key === 'floor_tile_4') {
+    if (key === 'floor_tile_1') {
+      // Floor 1: Reception lobby polished marble tiles with diamond center inlays & gloss
+      ctx.fillStyle = '#f8f4ed';
+      ctx.fillRect(6, 6, 22, 22);
+      ctx.fillRect(36, 36, 22, 22);
+      ctx.strokeStyle = '#b8a690';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(6, 6, 22, 22);
+      ctx.strokeRect(36, 36, 22, 22);
+
+      // Elegant diamond center tile
+      ctx.fillStyle = '#b09e86';
+      ctx.beginPath();
+      ctx.moveTo(32, 22); ctx.lineTo(42, 32); ctx.lineTo(32, 42); ctx.lineTo(22, 32);
+      ctx.closePath();
+      ctx.fill();
+
+      // Polished marble gloss reflections
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillRect(8, 8, 16, 2);
+      ctx.fillRect(38, 38, 16, 2);
+    } else if (key === 'floor_tile_4') {
       // Datacenter: Glowing cyan cyber circuit grid lines & solder nodes
       ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
       ctx.lineWidth = 1;
@@ -150,7 +171,7 @@ export class TextureGenerator {
       this.drawWall(scene, 'wall_tile', '#475569', '#334155', '#64748b');
     }
 
-    this.drawWall(scene, 'wall_tile_1', '#7c2d12', '#431407', '#9a3412');
+    this.drawWall(scene, 'wall_tile_1', '#3b170b', '#1a0a04', '#602414');
     this.drawWall(scene, 'wall_tile_2', '#334155', '#1e293b', '#475569');
     this.drawWall(scene, 'wall_tile_3', '#7f1d1d', '#450a0a', '#991b1b');
     this.drawWall(scene, 'wall_tile_4', '#0f172a', '#020617', '#0369a1');
@@ -820,7 +841,7 @@ export class TextureGenerator {
     // 5. Cats: Ginger Tabby, Black Cat, Siamese Cat, Calico Tricolor
     this.drawCat(scene, 'pet_cat', '#f97316', '#c2410c', '#22c55e');
     this.drawCat(scene, 'pet_cat_ginger', '#f97316', '#c2410c', '#22c55e');
-    this.drawCat(scene, 'pet_cat_black', '#18181b', '#09090b', '#eab308');
+    this.drawBlackCat(scene, 'pet_cat_black');
     this.drawCat(scene, 'pet_cat_siamese', '#fef3c7', '#78350f', '#0284c7');
     this.drawCalicoCat(scene, 'pet_cat_calico');
 
@@ -982,6 +1003,92 @@ export class TextureGenerator {
     // Eyes
     ctx.fillStyle = eyeColor;
     ctx.fillRect(25, 12, 1.5, 1.5);
+
+    canvas.refresh();
+  }
+
+  private static drawBlackCat(scene: Phaser.Scene, key: string) {
+    if (scene.textures.exists(key)) return;
+    const canvas = scene.textures.createCanvas(key, 34, 32);
+    if (!canvas) return;
+    const ctx = canvas.getContext();
+
+    // High-visibility luminous rim/aura so black cat stands out against any dark floor
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(16, 20, 12, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body (Rich charcoal black with distinct fur sheen)
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.ellipse(16, 20, 10.5, 7.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White Tuxedo Chest Patch (Immediate high contrast in center of body)
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.ellipse(21, 20, 3.5, 4.5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs with cute white paws ("meias brancas")
+    ctx.fillStyle = '#18181b';
+    ctx.fillRect(10, 24, 3.5, 6);
+    ctx.fillRect(19, 24, 3.5, 6);
+    // White socks
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(10, 27.5, 3.5, 2.5);
+    ctx.fillRect(19, 27.5, 3.5, 2.5);
+
+    // Head
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.arc(24, 14, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Silver rim highlight around head
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Pointy ears with bright pink inner ear
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.moveTo(21, 10); ctx.lineTo(23, 4); ctx.lineTo(25, 10); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(26, 10); ctx.lineTo(28, 4); ctx.lineTo(30, 10); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.moveTo(22, 9); ctx.lineTo(23, 6); ctx.lineTo(24, 9); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(27, 9); ctx.lineTo(28, 6); ctx.lineTo(29, 9); ctx.closePath(); ctx.fill();
+
+    // Fluorescent high-vis red safety collar with glowing golden bell
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(20, 17, 7, 2.5);
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(23, 19.5, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Upright curled tail with white tip
+    ctx.strokeStyle = '#18181b';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(7, 20);
+    ctx.quadraticCurveTo(3, 13, 4, 7);
+    ctx.stroke();
+    // White tail tip
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(4, 7, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Glowing vibrant emerald / lime feline eyes with white shine
+    ctx.fillStyle = '#a3e635';
+    ctx.fillRect(25, 13, 2.5, 2.5);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(26, 13, 1, 1);
 
     canvas.refresh();
   }

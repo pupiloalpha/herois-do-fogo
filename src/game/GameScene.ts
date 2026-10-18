@@ -33,6 +33,8 @@ interface InteractiveItem {
   completed: boolean;
   name?: string;
   quote?: string;
+  aura?: Phaser.GameObjects.Arc;
+  tag?: Phaser.GameObjects.Text;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -338,12 +340,33 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // Pets with individual breeds/coats
+    // Pets with individual breeds/coats and prominent rescue aura
     this.floorData.pets.forEach(p => {
       let petKey = p.type === 'dog' ? 'pet_dog' : (p.type === 'bird' ? 'pet_bird_arara' : 'pet_cat');
       if (p.spriteType && this.textures.exists(p.spriteType)) {
         petKey = p.spriteType;
       }
+
+      // Pulsing golden rescue aura underneath pet to guarantee high contrast on all floors
+      const aura = this.add.circle(p.x, p.y + 4, 18, 0xfacc15, 0.3).setDepth(2);
+      this.tweens.add({
+        targets: aura,
+        scale: { from: 0.9, to: 1.4 },
+        alpha: { from: 0.4, to: 0.1 },
+        duration: 700,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+
+      // Name / Callout tag above pet
+      const petTag = this.add.text(p.x, p.y - 20, `🐾 ${p.name.split(' ')[0]}`, {
+        fontSize: '10px',
+        color: '#fef08a',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        padding: { x: 4, y: 1 }
+      }).setOrigin(0.5).setDepth(5);
+
       const petSprite = this.add.sprite(p.x, p.y, petKey).setDepth(4);
       this.tweens.add({
         targets: petSprite,
@@ -359,7 +382,9 @@ export class GameScene extends Phaser.Scene {
         y: p.y,
         sprite: petSprite,
         completed: false,
-        name: p.name
+        name: p.name,
+        aura,
+        tag: petTag
       });
     });
 
@@ -845,6 +870,8 @@ export class GameScene extends Phaser.Scene {
       this.checkExitConditions();
     } else if ((nearest.type === 'pet_dog' || nearest.type === 'pet_cat') && !nearest.completed) {
       nearest.completed = true;
+      if (nearest.aura) nearest.aura.destroy();
+      if (nearest.tag) nearest.tag.destroy();
       sounds.playRescuePet(nearest.type === 'pet_dog' ? 'dog' : 'cat');
       this.rescuedPetsCount++;
       this.score += 400;

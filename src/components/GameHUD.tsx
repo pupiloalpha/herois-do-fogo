@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GameHUDState } from '../game/types';
-import { Heart, Flame, Clock, Trophy, Users, Volume2, VolumeX, Pause, Sparkles, ChevronDown, ChevronUp, Maximize, Minimize } from 'lucide-react';
+import { Heart, Flame, Clock, Trophy, Users, Volume2, VolumeX, Pause, Sparkles, ChevronDown, ChevronUp, Maximize, Minimize, CheckCircle2 } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface GameHUDProps {
@@ -11,6 +11,90 @@ interface GameHUDProps {
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
 }
+
+// Reusable Vitals component for both mobile (left) and desktop (right alongside missions)
+const VitalsPanel: React.FC<{
+  hud: GameHUDState;
+  healthPercent: number;
+  extPercent: number;
+  heatPercent: number;
+  className?: string;
+  isCompact?: boolean;
+}> = ({ hud, healthPercent, extPercent, heatPercent, className = '', isCompact = false }) => (
+  <div className={`bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-xl pointer-events-auto ${className}`}>
+    {!isCompact && (
+      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between border-b border-slate-800 pb-0.5">
+        <span>Dados Operacionais</span>
+        <span className="text-[9px] text-orange-400 font-mono">BOMBEIRO</span>
+      </div>
+    )}
+
+    {/* Health (Vida) */}
+    <div className="space-y-0.5 sm:space-y-1">
+      <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
+        <span className="flex items-center gap-1 text-rose-400">
+          <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-rose-500 text-rose-500 animate-pulse" />
+          <span>VIDA</span>
+        </span>
+        <span className="font-mono text-white tabular-nums text-[10px] sm:text-xs">{hud.health}/{hud.maxHealth}</span>
+      </div>
+      <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
+        <div 
+          className={`h-full transition-all duration-150 ${healthPercent < 30 ? 'bg-red-600 animate-pulse' : 'bg-gradient-to-r from-red-500 to-rose-400'}`}
+          style={{ width: `${healthPercent}%` }}
+        />
+      </div>
+    </div>
+
+    {/* Extinguisher Pressure & Hydrant Refill Alert (Água) */}
+    <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-1.5">
+      <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
+        <span className="flex items-center gap-1 text-cyan-400">
+          <span className="text-[10px]">🧯</span>
+          <span>ÁGUA</span>
+        </span>
+        <span className={`font-mono tabular-nums text-[10px] sm:text-xs ${hud.extinguisher <= 15 ? 'text-red-400 font-bold animate-pulse' : 'text-cyan-200'}`}>
+          {hud.extinguisher}%
+        </span>
+      </div>
+      <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
+        <div 
+          className={`h-full transition-all duration-100 ${hud.extinguisher <= 15 ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-r from-cyan-600 to-sky-400'}`}
+          style={{ width: `${extPercent}%` }}
+        />
+      </div>
+      {hud.extinguisher <= 15 && (
+        <div className="text-[9px] sm:text-[10px] text-amber-200 font-black bg-red-950/90 border border-red-500/80 rounded px-1.5 py-0.5 animate-pulse mt-0.5 flex items-center gap-1 leading-tight">
+          <span>🚰</span>
+          <span>Recarregue no Hidrante!</span>
+        </div>
+      )}
+    </div>
+
+    {/* Heat & Smoke Exposure (Dano / Fumaça) */}
+    <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-1.5">
+      <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
+        <span className="flex items-center gap-1 text-amber-400">
+          <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
+          <span>FUMAÇA / CALOR</span>
+        </span>
+        <span className={`font-mono tabular-nums text-[10px] sm:text-xs ${heatPercent > 70 ? 'text-red-400 font-bold' : 'text-amber-200'}`}>{heatPercent}%</span>
+      </div>
+      <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
+        <div 
+          className={`h-full transition-all duration-100 ${heatPercent > 70 ? 'bg-red-600 animate-pulse' : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}
+          style={{ width: `${heatPercent}%` }}
+        />
+      </div>
+      {heatPercent >= 70 && (
+        <div className="text-[8px] sm:text-[10px] text-red-300 font-extrabold bg-red-950/90 border border-red-500 rounded px-1.5 py-0.5 animate-pulse mt-0.5 flex items-center gap-1 leading-tight">
+          <span>⚠️</span>
+          <span>Fumaça Tóxica!</span>
+        </div>
+      )}
+    </div>
+  </div>
+);
 
 export const GameHUD: React.FC<GameHUDProps> = ({
   hud,
@@ -52,76 +136,85 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     completedCount += hud.cutElectricPanels;
   }
 
+  // Objectives checklist content
+  const renderChecklist = () => (
+    <div className="space-y-1 text-xs">
+      {hud.totalCivilians > 0 && (
+        <div className="flex justify-between items-center text-slate-300 gap-2">
+          <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+            <Users className="w-3 h-3 text-emerald-400" /> Pessoas:
+          </span>
+          <span className={`font-mono font-bold text-[10px] sm:text-xs flex items-center gap-1 ${hud.rescuedCivilians >= hud.totalCivilians ? 'text-emerald-400' : 'text-slate-100'}`}>
+            {hud.rescuedCivilians}/{hud.totalCivilians}
+            {hud.rescuedCivilians >= hud.totalCivilians && <CheckCircle2 className="w-3 h-3 text-emerald-400 inline" />}
+          </span>
+        </div>
+      )}
+
+      {hud.totalPets > 0 && (
+        <div className="flex justify-between items-center text-slate-300 gap-2">
+          <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+            🐾 Animais:
+          </span>
+          <span className={`font-mono font-bold text-[10px] sm:text-xs flex items-center gap-1 ${hud.rescuedPets >= hud.totalPets ? 'text-yellow-400' : 'text-slate-100'}`}>
+            {hud.rescuedPets}/{hud.totalPets}
+            {hud.rescuedPets >= hud.totalPets && <CheckCircle2 className="w-3 h-3 text-emerald-400 inline" />}
+          </span>
+        </div>
+      )}
+
+      <div className="flex justify-between items-center text-slate-300 gap-2">
+        <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+          🔥 Focos Fogo:
+        </span>
+        <span className={`font-mono font-bold text-[10px] sm:text-xs flex items-center gap-1 ${hud.extinguishedFires >= hud.totalFires ? 'text-emerald-400' : 'text-orange-400'}`}>
+          {hud.extinguishedFires}/{hud.totalFires}
+          {hud.extinguishedFires >= hud.totalFires && <CheckCircle2 className="w-3 h-3 text-emerald-400 inline" />}
+        </span>
+      </div>
+
+      {hud.totalGasValves > 0 && (
+        <div className="flex justify-between items-center text-slate-300 gap-2">
+          <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+            ⚠️ Gás GLP:
+          </span>
+          <span className={`font-mono font-bold text-[10px] sm:text-xs flex items-center gap-1 ${hud.closedGasValves >= hud.totalGasValves ? 'text-emerald-400' : 'text-purple-400'}`}>
+            {hud.closedGasValves}/{hud.totalGasValves}
+            {hud.closedGasValves >= hud.totalGasValves && <CheckCircle2 className="w-3 h-3 text-emerald-400 inline" />}
+          </span>
+        </div>
+      )}
+
+      {hud.totalElectricPanels > 0 && (
+        <div className="flex justify-between items-center text-slate-300 gap-2">
+          <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+            ⚡ Quadros:
+          </span>
+          <span className={`font-mono font-bold text-[10px] sm:text-xs flex items-center gap-1 ${hud.cutElectricPanels >= hud.totalElectricPanels ? 'text-emerald-400' : 'text-cyan-400'}`}>
+            {hud.cutElectricPanels}/{hud.totalElectricPanels}
+            {hud.cutElectricPanels >= hud.totalElectricPanels && <CheckCircle2 className="w-3 h-3 text-emerald-400 inline" />}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-2 sm:p-3 pt-[max(0.6rem,env(safe-area-inset-top))] pb-[max(0.6rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] select-none">
       {/* Top perimeter cluster */}
       <div className="flex items-start justify-between w-full gap-1.5 sm:gap-2">
-        {/* Left: Vitals (Health, Extinguisher, Heat) */}
-        <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2 sm:p-2.5 shadow-xl w-[130px] sm:w-[220px] pointer-events-auto shrink-0">
-          {/* Health */}
-          <div className="space-y-0.5 sm:space-y-1">
-            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
-              <span className="flex items-center gap-1 text-rose-400">
-                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-rose-500 text-rose-500 animate-pulse" />
-                <span className="hidden xs:inline">VIDA</span>
-              </span>
-              <span className="font-mono text-white tabular-nums text-[10px] sm:text-xs">{hud.health}/{hud.maxHealth}</span>
-            </div>
-            <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
-              <div 
-                className={`h-full transition-all duration-150 ${healthPercent < 30 ? 'bg-red-600 animate-pulse' : 'bg-gradient-to-r from-red-500 to-rose-400'}`}
-                style={{ width: `${healthPercent}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Extinguisher Pressure & Hydrant Refill Alert */}
-          <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-1.5">
-            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
-              <span className="flex items-center gap-1 text-cyan-400">
-                <span className="text-[10px]">🧯</span>
-                <span className="hidden xs:inline">EXTINTOR</span>
-              </span>
-              <span className={`font-mono tabular-nums text-[10px] sm:text-xs ${hud.extinguisher <= 15 ? 'text-red-400 font-bold animate-pulse' : 'text-cyan-200'}`}>
-                {hud.extinguisher}%
-              </span>
-            </div>
-            <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
-              <div 
-                className={`h-full transition-all duration-100 ${hud.extinguisher <= 15 ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-r from-cyan-600 to-sky-400'}`}
-                style={{ width: `${extPercent}%` }}
-              />
-            </div>
-            {hud.extinguisher <= 15 && (
-              <div className="text-[9px] sm:text-[10px] text-amber-200 font-black bg-red-950/90 border border-red-500/80 rounded px-1.5 py-0.5 animate-pulse mt-0.5 flex items-center gap-1 leading-tight">
-                <span>🚰</span>
-                <span>Recarregue no Hidrante!</span>
-              </div>
-            )}
-          </div>
-
-          {/* Heat & Smoke Exposure */}
-          <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-1.5">
-            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold">
-              <span className="flex items-center gap-1 text-amber-400">
-                <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" />
-                <span className="hidden xs:inline">FUMAÇA & CALOR</span>
-              </span>
-              <span className={`font-mono tabular-nums text-[10px] sm:text-xs ${heatPercent > 70 ? 'text-red-400 font-bold' : 'text-amber-200'}`}>{heatPercent}%</span>
-            </div>
-            <div className="w-full bg-slate-950 rounded-full h-1.5 sm:h-2 overflow-hidden border border-slate-800">
-              <div 
-                className={`h-full transition-all duration-100 ${heatPercent > 70 ? 'bg-red-600 animate-pulse' : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}
-                style={{ width: `${heatPercent}%` }}
-              />
-            </div>
-            {heatPercent >= 70 && (
-              <div className="text-[8px] sm:text-[10px] text-red-300 font-extrabold bg-red-950/90 border border-red-500 rounded px-1.5 py-0.5 animate-pulse mt-0.5 flex items-center gap-1 leading-tight">
-                <span>⚠️</span>
-                <span>Fumaça Tóxica!</span>
-              </div>
-            )}
-          </div>
+        {/* Left Side:
+            - Mobile (< md): shows compact Vitals panel
+            - Computer/Desktop (md+): Left side is COMPLETELY CLEAR to avoid overlaying game objects! */}
+        <div className="md:hidden">
+          <VitalsPanel
+            hud={hud}
+            healthPercent={healthPercent}
+            extPercent={extPercent}
+            heatPercent={heatPercent}
+            className="w-[125px] sm:w-[140px] shrink-0"
+            isCompact={true}
+          />
         </div>
 
         {/* Center: Floor Indicator & Timer */}
@@ -150,11 +243,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             </div>
           ) : (
             <div className="text-[10px] sm:text-xs text-slate-300 bg-slate-900/80 px-2.5 py-0.5 rounded-full border border-slate-800 hidden sm:block font-medium">
-              Cumpra as missões para liberar a escada
+              Cumpra as metas para liberar a escada
             </div>
           )}
 
-          {/* Urgent Empty Tank Alert (Improvement 2) */}
+          {/* Urgent Empty Tank Alert */}
           {hud.extinguisher <= 0 && (
             <div className="bg-red-600 border-2 border-amber-300 text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full shadow-2xl animate-bounce flex items-center gap-1.5 pointer-events-auto">
               <span>🚨</span>
@@ -162,7 +255,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             </div>
           )}
 
-          {/* Toxic Smoke Exposure Alert (Improvement 4) */}
+          {/* Toxic Smoke Exposure Alert */}
           {hud.smokeAlert && hud.extinguisher > 0 && !hud.exitUnlocked && (
             <div className="bg-amber-600/95 border border-amber-300 text-slate-950 text-[10px] sm:text-xs font-black px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg animate-pulse flex items-center gap-1.5 pointer-events-auto">
               <span>💨</span>
@@ -171,117 +264,95 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           )}
         </div>
 
-        {/* Right: Score, Missions toggle & Quick Controls */}
+        {/* Right Side:
+            - Controls bar (Fullscreen, Mute, Pause) + Score
+            - On Desktop (md+): Vitals Panel (Vida, Água, Dano) is placed right here alongside Metas da Fase!
+            - On Mobile (< md): Metas da fase with dropdown toggle button */}
         <div className="flex flex-col items-end gap-1.5 sm:gap-2 shrink-0">
-          {/* Controls bar */}
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            {onToggleFullscreen && (
+          {/* Controls & Score bar */}
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {/* Score */}
+            <div className="bg-slate-900/90 border border-amber-500/30 rounded-xl px-2.5 py-1 shadow-md flex items-center gap-1.5 text-amber-400">
+              <Trophy className="w-3.5 h-3.5" />
+              <span className="font-mono text-xs sm:text-sm font-extrabold text-white tabular-nums">{hud.score.toLocaleString('pt-BR')}</span>
+            </div>
+
+            {/* Quick buttons */}
+            <div className="flex items-center gap-1">
+              {onToggleFullscreen && (
+                <button
+                  onClick={() => {
+                    sounds.playClick();
+                    onToggleFullscreen();
+                  }}
+                  className="p-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-white transition shadow-md active:scale-95"
+                  title={isFullscreen ? 'Sair da Tela Cheia' : 'Entrar em Tela Cheia'}
+                >
+                  {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   sounds.playClick();
-                  onToggleFullscreen();
+                  onToggleMute();
                 }}
-                className="p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-white transition shadow-md active:scale-95"
-                title={isFullscreen ? 'Sair da Tela Cheia' : 'Entrar em Tela Cheia'}
+                className="p-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition shadow-md active:scale-95"
+                title={isMuted ? 'Ativar Som' : 'Silenciar'}
               >
-                {isFullscreen ? <Minimize className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
               </button>
-            )}
 
-            <button
-              onClick={() => {
-                sounds.playClick();
-                onToggleMute();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition shadow-md active:scale-95"
-              title={isMuted ? 'Ativar Som' : 'Silenciar'}
-            >
-              {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />}
-            </button>
-
-            <button
-              onClick={() => {
-                sounds.playClick();
-                onPause();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition shadow-md active:scale-95"
-              title="Pausar"
-            >
-              <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  onPause();
+                }}
+                className="p-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition shadow-md active:scale-95"
+                title="Pausar"
+              >
+                <Pause className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
-          {/* Score & Objectives panel */}
-          <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 shadow-xl text-right pointer-events-auto">
-            <div className="flex items-center justify-end gap-1 text-amber-400 text-xs font-bold">
-              <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="font-mono text-xs sm:text-base font-extrabold text-white tabular-nums">{hud.score.toLocaleString('pt-BR')}</span>
-            </div>
+          {/* Desktop Layout: Vitals Panel AND Metas Panel side-by-side on the Right */}
+          <div className="hidden md:flex flex-row items-start gap-2 pointer-events-auto">
+            {/* Panel 1: Vida, Água, Dano / Fumaça */}
+            <VitalsPanel
+              hud={hud}
+              healthPercent={healthPercent}
+              extPercent={extPercent}
+              heatPercent={heatPercent}
+              className="w-[200px] lg:w-[220px]"
+              isCompact={false}
+            />
 
-            {/* Mobile collapsible toggle */}
+            {/* Panel 2: Metas da Fase (Checklist) */}
+            <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 shadow-xl w-[190px] lg:w-[210px]">
+              <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between border-b border-slate-800 pb-0.5">
+                <span>Metas da Fase</span>
+                <span className="text-[10px] text-amber-400 font-mono font-bold">({completedCount}/{totalCount})</span>
+              </div>
+              {renderChecklist()}
+            </div>
+          </div>
+
+          {/* Mobile Layout (< md): Collapsible Objectives Box */}
+          <div className="md:hidden bg-slate-900/90 border border-slate-700/80 rounded-xl p-1.5 shadow-xl pointer-events-auto w-[130px]">
             <button
               onClick={() => setShowMobileMissions(!showMobileMissions)}
-              className="mt-1 flex sm:hidden items-center justify-end gap-1 text-[10px] font-bold text-orange-400 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 w-full"
+              className="flex items-center justify-between text-[10px] font-bold text-orange-400 bg-slate-950/80 px-2 py-0.5 rounded-lg border border-slate-800 w-full"
             >
-              <span>Missões ({completedCount}/{totalCount})</span>
+              <span>Metas ({completedCount}/{totalCount})</span>
               {showMobileMissions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
 
-            {/* Desktop Checklist (Always visible) or Mobile Dropdown */}
-            <div className={`space-y-1 text-xs border-t border-slate-800 pt-1.5 ${showMobileMissions ? 'block' : 'hidden sm:block'}`}>
-              {hud.totalCivilians > 0 && (
-                <div className="flex justify-between items-center text-slate-300 gap-2">
-                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                    <Users className="w-3 h-3 text-emerald-400" /> Pessoas:
-                  </span>
-                  <span className={`font-mono font-bold text-[10px] sm:text-xs ${hud.rescuedCivilians >= hud.totalCivilians ? 'text-emerald-400' : 'text-slate-100'}`}>
-                    {hud.rescuedCivilians}/{hud.totalCivilians}
-                  </span>
-                </div>
-              )}
-
-              {hud.totalPets > 0 && (
-                <div className="flex justify-between items-center text-slate-300 gap-2">
-                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                    🐾 Animais:
-                  </span>
-                  <span className={`font-mono font-bold text-[10px] sm:text-xs ${hud.rescuedPets >= hud.totalPets ? 'text-yellow-400' : 'text-slate-100'}`}>
-                    {hud.rescuedPets}/{hud.totalPets}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center text-slate-300 gap-2">
-                <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                  🔥 Focos Fogo:
-                </span>
-                <span className={`font-mono font-bold text-[10px] sm:text-xs ${hud.extinguishedFires >= hud.totalFires ? 'text-emerald-400' : 'text-orange-400'}`}>
-                  {hud.extinguishedFires}/{hud.totalFires}
-                </span>
+            {showMobileMissions && (
+              <div className="mt-1.5 border-t border-slate-800 pt-1">
+                {renderChecklist()}
               </div>
-
-              {hud.totalGasValves > 0 && (
-                <div className="flex justify-between items-center text-slate-300 gap-2">
-                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                    ⚠️ Gás GLP:
-                  </span>
-                  <span className={`font-mono font-bold text-[10px] sm:text-xs ${hud.closedGasValves >= hud.totalGasValves ? 'text-emerald-400' : 'text-purple-400'}`}>
-                    {hud.closedGasValves}/{hud.totalGasValves}
-                  </span>
-                </div>
-              )}
-
-              {hud.totalElectricPanels > 0 && (
-                <div className="flex justify-between items-center text-slate-300 gap-2">
-                  <span className="flex items-center gap-1 text-[10px] sm:text-[11px]">
-                    ⚡ Quadros:
-                  </span>
-                  <span className={`font-mono font-bold text-[10px] sm:text-xs ${hud.cutElectricPanels >= hud.totalElectricPanels ? 'text-emerald-400' : 'text-cyan-400'}`}>
-                    {hud.cutElectricPanels}/{hud.totalElectricPanels}
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
