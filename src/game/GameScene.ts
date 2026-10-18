@@ -15,6 +15,7 @@ interface SceneInitData {
 }
 
 interface FireEntity {
+  id: string;
   sprite: Phaser.GameObjects.Sprite;
   hp: number;
   maxHp: number;
@@ -60,6 +61,10 @@ export class GameScene extends Phaser.Scene {
   private waterParticles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private smokeParticles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private sparkParticles!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private smokeClouds: { sprite: Phaser.GameObjects.Sprite; x: number; y: number; fireId?: string }[] = [];
+  private smokeVignetteGraphics!: Phaser.GameObjects.Graphics;
+  private lastCoughTime: number = 0;
+  private wasEmptyNotified: boolean = false;
 
   // Stats
   private score: number = 0;
@@ -131,12 +136,16 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#090d16');
     this.physics.world.setBounds(0, 0, this.floorData.width, this.floorData.height);
 
-    // 1. Floor background grid
+    // 1. Floor background grid with unique floor themes
+    const floorTileKey = this.textures.exists(`floor_tile_${this.floorNumber}`)
+      ? `floor_tile_${this.floorNumber}`
+      : 'floor_tile';
+
     const cols = Math.ceil(this.floorData.width / 64);
     const rows = Math.ceil(this.floorData.height / 64);
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
-        this.add.image(c * 64 + 32, r * 64 + 32, 'floor_tile').setDepth(0);
+        this.add.image(c * 64 + 32, r * 64 + 32, floorTileKey).setDepth(0);
       }
     }
 
@@ -158,10 +167,14 @@ export class GameScene extends Phaser.Scene {
       hText.setDepth(1);
     }
 
-    // 2. Build Walls
+    // 2. Build Walls with floor theme
+    const wallTileKey = this.textures.exists(`wall_tile_${this.floorNumber}`)
+      ? `wall_tile_${this.floorNumber}`
+      : 'wall_tile';
+
     this.wallsGroup = this.physics.add.staticGroup();
     this.floorData.walls.forEach(w => {
-      const wall = this.add.tileSprite(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 'wall_tile');
+      const wall = this.add.tileSprite(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, wallTileKey);
       wall.setDepth(2);
       this.physics.add.existing(wall, true);
       this.wallsGroup.add(wall);
@@ -220,9 +233,26 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // Refill Hydrants
+    // Refill Hydrants with prominent label and pulse
     this.floorData.refillStations.forEach(r => {
       const hyd = this.add.sprite(r.x, r.y, 'refill_station').setDepth(3);
+      this.tweens.add({
+        targets: hyd,
+        scale: { from: 1.0, to: 1.14 },
+        duration: 900,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      // Visible label indicating water hydrant
+      this.add.text(r.x, r.y - 28, '🚰 HIDRANTE', {
+        fontSize: '10px',
+        color: '#38bdf8',
+        fontStyle: 'bold',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        padding: { x: 5, y: 2 }
+      }).setOrigin(0.5).setDepth(4);
+
       this.interactives.push({
         id: r.id,
         type: 'refill_station',
@@ -230,11 +260,11 @@ export class GameScene extends Phaser.Scene {
         y: r.y,
         sprite: hyd,
         completed: false,
-        name: 'Hidrante / Estação de Extintor'
+        name: 'Hidrante / Estação de Recarga'
       });
     });
 
-    // Gas Valves
+    // Gas Valves with toxic smoke clouds
     this.floorData.gasValves.forEach(g => {
       const valve = this.add.sprite(g.x, g.y, 'gas_valve').setDepth(3);
       this.interactives.push({
@@ -245,6 +275,27 @@ export class GameScene extends Phaser.Scene {
         sprite: valve,
         completed: false,
         name: 'Registro de Gás GLP'
+      });
+
+      // Toxic acrid smoke cloud billowing from leaking gas valve
+      const toxicCloud = this.add.sprite(g.x, g.y - 16, 'smoke_toxic').setDepth(7);
+      toxicCloud.setAlpha(0.6);
+      toxicCloud.setScale(1.2);
+      this.tweens.add({
+        targets: toxicCloud,
+        x: g.x + (Math.random() * 20 - 10),
+        y: g.y - 26,
+        alpha: { from: 0.45, to: 0.7 },
+        duration: 2000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      this.smokeClouds.push({
+        sprite: toxicCloud,
+        x: g.x,
+        y: g.y - 16,
+        fireId: g.id
       });
     });
 
@@ -262,9 +313,10 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // Civilians
+    // Civilians with distinctive sprites
     this.floorData.civilians.forEach(c => {
-      const civ = this.add.sprite(c.x, c.y, 'civilian').setDepth(4);
+      const civKey = (c.spriteType && this.textures.exists(c.spriteType)) ? c.spriteType : 'civilian';
+      const civ = this.add.sprite(c.x, c.y, civKey).setDepth(4);
       // Gentle bobbing tween
       this.tweens.add({
         targets: civ,
@@ -286,9 +338,12 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // Pets
+    // Pets with individual breeds/coats
     this.floorData.pets.forEach(p => {
-      const petKey = p.type === 'dog' ? 'pet_dog' : 'pet_cat';
+      let petKey = p.type === 'dog' ? 'pet_dog' : (p.type === 'bird' ? 'pet_bird_arara' : 'pet_cat');
+      if (p.spriteType && this.textures.exists(p.spriteType)) {
+        petKey = p.spriteType;
+      }
       const petSprite = this.add.sprite(p.x, p.y, petKey).setDepth(4);
       this.tweens.add({
         targets: petSprite,
@@ -308,8 +363,9 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // 5. Spawn Fires
+    // 5. Spawn Fires & Volumetric Drifting Smoke
     this.fires = [];
+    this.smokeClouds = [];
     this.floorData.fires.forEach(f => {
       let hp = 45;
       let radius = 24;
@@ -338,6 +394,7 @@ export class GameScene extends Phaser.Scene {
       });
 
       this.fires.push({
+        id: f.id,
         sprite: fireSprite,
         hp,
         maxHp: hp,
@@ -345,7 +402,31 @@ export class GameScene extends Phaser.Scene {
         x: f.x,
         y: f.y
       });
+
+      // Spawn volumetric drifting smoke cloud above fire
+      const cloudSprite = this.add.sprite(f.x, f.y - 18, 'smoke_cloud').setDepth(8);
+      cloudSprite.setAlpha(0.55);
+      cloudSprite.setScale(scale * 1.1);
+      this.tweens.add({
+        targets: cloudSprite,
+        x: f.x + (Math.random() * 24 - 12),
+        y: f.y - 28,
+        angle: { from: -8, to: 8 },
+        duration: 2200 + Math.random() * 600,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      this.smokeClouds.push({
+        sprite: cloudSprite,
+        x: f.x,
+        y: f.y - 18,
+        fireId: f.id
+      });
     });
+
+    // Screen-fixed smoke vignette for toxic inhalation hazard
+    this.smokeVignetteGraphics = this.add.graphics().setDepth(25).setScrollFactor(0);
 
     // 6. Spawn Player
     const playerKey = this.characterId === 'faisca' ? 'faisca_player' : 'foguinho_player';
@@ -451,7 +532,9 @@ export class GameScene extends Phaser.Scene {
 
     this.isSprinting = (this.keyShift?.isDown || this.touchSprinting);
     const speedMult = this.isSprinting ? 1.4 : 1.0;
-    const baseSpeed = stats.speed * speedMult;
+    // Toxic smoke inhalation reduces firefighter movement speed
+    const smokePenalty = this.heatMeter >= 65 ? Math.max(0.68, 1.0 - ((this.heatMeter - 65) / 35) * 0.32) : 1.0;
+    const baseSpeed = stats.speed * speedMult * smokePenalty;
 
     if (moveX !== 0 || moveY !== 0) {
       const len = Math.hypot(moveX, moveY);
@@ -467,13 +550,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     // 2. Extinguisher Spraying
-    // 2. Extinguisher Spraying
     const wantSpray = (this.keySpace?.isDown || this.touchSpraying);
     if (wantSpray && this.extinguisher > 0) {
       this.isSpraying = true;
+      this.wasEmptyNotified = false;
       this.extinguisher = Math.max(0, this.extinguisher - 14 * dt);
 
-      // Active water spray shields firefighter from ambient heat
+      // Active water spray shields firefighter from ambient heat & smoke
       this.heatMeter = Math.max(0, this.heatMeter - 45 * dt);
 
       // Auto-target nearby active fire within forward arc (up to 150px)
@@ -499,19 +582,29 @@ export class GameScene extends Phaser.Scene {
       this.waterParticles.emitParticleAt(sprayOriginX, sprayOriginY, 3);
       sounds.startSpray();
 
-      // Check hits against fires (both close-range overlap and forward spray cone)
+      // Check hits against fires and dissipate nearby smoke
       this.checkSprayAgainstFires(sprayOriginX, sprayOriginY, sprayAngle, dt * stats.extinguishPower);
     } else {
       if (this.isSpraying) {
         sounds.stopSpray();
         this.isSpraying = false;
       }
+      // Dry click and prominent guidance when attempting to spray with empty tank
+      if (wantSpray && this.extinguisher <= 0) {
+        if (!this.wasEmptyNotified) {
+          this.wasEmptyNotified = true;
+          sounds.playEmptyTank();
+          this.showFloatingText(this.player.x, this.player.y - 25, '🧯 EXTINTOR ESGOTADO! Vá ao Hidrante [🚰]!', '#ef4444');
+        }
+      } else if (!wantSpray) {
+        this.wasEmptyNotified = false;
+      }
       // Slowly regenerate extinguisher tank when idle
       this.extinguisher = Math.min(this.maxExtinguisher, this.extinguisher + 4.0 * dt);
     }
 
-    // 3. Proximity and Heat Check
-    this.checkHeatAndDamage(dt);
+    // 3. Proximity, Smoke, and Heat Check
+    this.checkHeatAndDamage(time, dt);
 
     // 4. Proximity prompt for interaction
     this.checkInteractionPrompt();
@@ -526,17 +619,27 @@ export class GameScene extends Phaser.Scene {
 
   private checkSprayAgainstFires(ox: number, oy: number, angle: number, power: number) {
     const sprayDist = 135;
-    const sprayArc = 1.25; // wide ~72 degree cone for forgiving mobile touch play
+    const sprayArc = 1.25;
+
+    // Dissipate nearby smoke clouds with water mist
+    for (let scIdx = this.smokeClouds.length - 1; scIdx >= 0; scIdx--) {
+      const sc = this.smokeClouds[scIdx];
+      const scDist = Math.hypot(sc.x - ox, sc.y - oy);
+      if (scDist < sprayDist + 35) {
+        sc.sprite.alpha = Math.max(0, sc.sprite.alpha - 0.7 * power);
+        if (sc.sprite.alpha <= 0.08) {
+          sc.sprite.destroy();
+          this.smokeClouds.splice(scIdx, 1);
+        }
+      }
+    }
 
     for (let i = this.fires.length - 1; i >= 0; i--) {
       const f = this.fires[i];
-      // Distance directly from player's center
       const distFromPlayer = Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y);
 
-      // 1. Direct Proximity: player standing directly on or right beside the fire!
+      // Direct Proximity & Directional Cone
       const isStandingOnFire = distFromPlayer <= (f.radius + 38);
-
-      // 2. Directional Stream: fire inside forward water cone
       const dx = f.x - ox;
       const dy = f.y - oy;
       const distFromNozzle = Math.hypot(dx, dy);
@@ -545,12 +648,10 @@ export class GameScene extends Phaser.Scene {
       const isInSprayCone = distFromNozzle <= (sprayDist + f.radius) && diff < sprayArc;
 
       if (isStandingOnFire || isInSprayCone) {
-        // High extinguishing power so flames respond immediately and feel punchy
         const basePower = isStandingOnFire ? 115 : 90;
         f.hp -= basePower * power;
         this.smokeParticles.emitParticleAt(f.x, f.y, 2);
 
-        // Visual feedback: fire shrinks and dims as HP drops
         const ratio = Math.max(0.15, f.hp / f.maxHp);
         f.sprite.setScale(ratio * (f.radius / 24));
         f.sprite.setAlpha(0.65 + ratio * 0.35);
@@ -564,13 +665,22 @@ export class GameScene extends Phaser.Scene {
           this.extinguishedFiresCount++;
           this.score += 150;
           this.showFloatingText(f.x, f.y, '+150 FOGO EXTINTO!', '#38bdf8');
+
+          // Remove attached smoke cloud
+          for (let scIdx = this.smokeClouds.length - 1; scIdx >= 0; scIdx--) {
+            if (this.smokeClouds[scIdx].fireId === f.id) {
+              this.smokeClouds[scIdx].sprite.destroy();
+              this.smokeClouds.splice(scIdx, 1);
+            }
+          }
+
           this.checkExitConditions();
         }
       }
     }
   }
 
-  private checkHeatAndDamage(dt: number) {
+  private checkHeatAndDamage(time: number, dt: number) {
     const stats = CHARACTERS[this.characterId];
     let ambientHeat = 0;
 
@@ -578,15 +688,12 @@ export class GameScene extends Phaser.Scene {
     for (const f of this.fires) {
       const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y);
       if (dist < f.radius + 18) {
-        // Direct contact with fire flames
-        // If actively spraying, the water shields the player by 75%
         const shieldMultiplier = this.isSpraying ? 0.25 : 1.0;
         const dmg = (30 * (1 - stats.heatResistance) * shieldMultiplier) * dt;
         this.currentHealth -= dmg;
         this.cameras.main.shake(60, 0.003);
         if (Math.random() < 0.08) sounds.playHurt();
       } else if (dist < f.radius + 80) {
-        // Radiant heat
         ambientHeat += (1 - dist / (f.radius + 80)) * 25;
       }
     }
@@ -599,17 +706,49 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Environmental Smoke Inhalation check
+    for (const sc of this.smokeClouds) {
+      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, sc.x, sc.y);
+      if (dist < 80 && sc.sprite.visible && sc.sprite.alpha > 0.15) {
+        ambientHeat += (1 - dist / 80) * 35;
+      }
+    }
+
     if (ambientHeat > 0) {
       this.heatMeter = Math.min(100, this.heatMeter + ambientHeat * dt);
     } else {
       this.heatMeter = Math.max(0, this.heatMeter - 18 * dt);
     }
 
-    // If heat meter is critical, take suffocating damage
-    if (this.heatMeter >= 90) {
-      const suffocateDmg = (14 * (1 - stats.heatResistance)) * dt;
+    // Dynamic smoke screen vignette based on smoke/heat exposure
+    this.smokeVignetteGraphics.clear();
+    if (this.heatMeter > 30) {
+      const factor = (this.heatMeter - 30) / 70;
+      const alpha = Math.min(0.78, factor * 0.75);
+      const camW = this.cameras.main.width;
+      const camH = this.cameras.main.height;
+      const bSize = Math.min(110, 25 + factor * 80);
+
+      this.smokeVignetteGraphics.fillStyle(0x020617, alpha);
+      this.smokeVignetteGraphics.fillRect(0, 0, camW, bSize);
+      this.smokeVignetteGraphics.fillRect(0, camH - bSize, camW, bSize);
+      this.smokeVignetteGraphics.fillRect(0, 0, bSize, camH);
+      this.smokeVignetteGraphics.fillRect(camW - bSize, 0, bSize, camH);
+    }
+
+    // Coughing when inhaling smoke (> 50%)
+    if (this.heatMeter >= 50 && time - this.lastCoughTime > 3200) {
+      this.lastCoughTime = time;
+      sounds.playCough();
+      this.showFloatingText(this.player.x, this.player.y - 30, 'Cof! Cof! Fumaça Tóxica!', '#cbd5e1');
+    }
+
+    // Critical smoke / heat warning (> 85%)
+    if (this.heatMeter >= 85) {
+      const suffocateDmg = (20 * (1 - stats.heatResistance)) * dt;
       this.currentHealth -= suffocateDmg;
-      if (Math.random() < 0.05) sounds.playHurt();
+      this.cameras.main.shake(80, 0.004);
+      if (Math.random() < 0.06) sounds.playWarning();
     }
 
     if (this.currentHealth <= 0) {
@@ -633,7 +772,7 @@ export class GameScene extends Phaser.Scene {
     if (nearest) {
       switch (nearest.type) {
         case 'civilian':
-          this.promptText = `[INTERAGIR] Salvar ${nearest.name}`;
+          this.promptText = `[INTERAGIR] Salvar ${nearest.name} 🤝`;
           break;
         case 'pet_dog':
           this.promptText = `[INTERAGIR] Resgatar Cãozinho ${nearest.name} 🐶`;
@@ -648,7 +787,7 @@ export class GameScene extends Phaser.Scene {
           this.promptText = `[INTERAGIR] Desligar Quadro Energizado ⚡`;
           break;
         case 'refill_station':
-          this.promptText = `[INTERAGIR] Recarregar Extintor de Incêndio 🧯`;
+          this.promptText = `[INTERAGIR] Recarregar 100% de Água no Hidrante 🚰`;
           break;
         case 'exit_door':
           if (this.exitUnlocked) {
@@ -658,6 +797,8 @@ export class GameScene extends Phaser.Scene {
           }
           break;
       }
+    } else if (this.extinguisher <= 0) {
+      this.promptText = '🚰 EXTINTOR VAZIO! Vá ao Hidrante [🚰] e aperte [AÇÃO] para 100% de água!';
     } else {
       this.promptText = null;
     }
@@ -729,6 +870,15 @@ export class GameScene extends Phaser.Scene {
       this.showFloatingText(nearest.x, nearest.y, '+300 GÁS FECHADO!', '#a855f7');
       // Tint valve to green
       (nearest.sprite as Phaser.GameObjects.Sprite).setTint(0x22c55e);
+
+      // Disperse associated toxic smoke cloud
+      for (let scIdx = this.smokeClouds.length - 1; scIdx >= 0; scIdx--) {
+        if (this.smokeClouds[scIdx].fireId === nearest.id) {
+          this.smokeClouds[scIdx].sprite.destroy();
+          this.smokeClouds.splice(scIdx, 1);
+        }
+      }
+
       this.checkExitConditions();
     } else if (nearest.type === 'electric_panel' && !nearest.completed) {
       nearest.completed = true;
@@ -741,7 +891,8 @@ export class GameScene extends Phaser.Scene {
     } else if (nearest.type === 'refill_station') {
       sounds.playRefill();
       this.extinguisher = this.maxExtinguisher;
-      this.showFloatingText(nearest.x, nearest.y, 'EXTINTOR 100% RECARREGADO!', '#38bdf8');
+      this.wasEmptyNotified = false;
+      this.showFloatingText(nearest.x, nearest.y, '🚰 EXTINTOR 100% RECARREGADO NO HIDRANTE!', '#38bdf8');
     } else if (nearest.type === 'exit_door') {
       if (this.exitUnlocked) {
         this.handleFloorClear();
@@ -893,7 +1044,9 @@ export class GameScene extends Phaser.Scene {
       cutElectricPanels: this.cutElectricPanelsCount,
       totalElectricPanels: totalElec,
       exitUnlocked: this.exitUnlocked,
-      promptActionText: this.promptText
+      promptActionText: this.promptText,
+      smokeAlert: this.heatMeter >= 70,
+      refillNeeded: this.extinguisher <= 15
     });
   }
 

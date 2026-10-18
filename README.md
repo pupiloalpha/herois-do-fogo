@@ -62,11 +62,27 @@ O jogo oferece dois bombeiros jogáveis, cada um com atributos únicos de resist
 
 ### No Celular e Tablet (Toque na Tela)
 - **Joystick Virtual (Polegar Esquerdo)**: Movimentação analógica em 360°.
-- **Botão Laranja [🧯 EXTINGUIR] (Polegar Direito)**: Jato contínuo com mira assistida e buffer de rajada mínima.
-- **Botão Verde [🤝 SALVAR]**: Resgate e interação com objetos ao redor.
+- **Botão Laranja [🧯 EXTINGUIR] (Polegar Direito)**: Jato contínuo com mira assistida para apagar chamas e dissipar nuvens de fumaça tóxica.
+- **Botão Verde [🤝 SALVAR / AÇÃO]**: Resgatar vítimas, animais e **recarregar 100% do extintor no hidrante**.
 - **Botão Amarelo [⚡ CORRER]**: Corrida com velocidade ampliada.
+- **Botão [↕ Altura]**: Eleva os botões na tela para nunca ficarem cobertos pelas barras de navegação do navegador.
 
 ---
+
+## 🚰 Mecânica de Recarga no Hidrante
+Quando o reservatório de água e espuma do extintor se esgota (0%), um alerta vermelho pulsante surge na tela:
+1. Localize os **Hidrantes de Parede Vermelhos (🚰)** destacados no cenário com anéis luminosos azuis.
+2. Aproxime o bombeiro do hidrante.
+3. Pressione a tecla **[E]** ou **[Enter]** no computador, ou toque no botão **[SALVAR / AÇÃO]** no celular.
+4. O extintor é **recarregado instantaneamente para 100% de capacidade**!
+
+---
+
+## 💨 O Perigo da Fumaça Tóxica
+Assim como em incêndios reais, a inalação de fumaça e gases aquecidos é o maior perigo:
+- **Tosse e Fuligem (&gt; 50% de fumaça)**: O bombeiro começa a tossir e vinhetas de fuligem escura reduzem a visão periférica.
+- **Lentidão e Asfixia (&gt; 65% de fumaça)**: A fumaça densa **reduz a velocidade de movimento em até 30%** e provoca dano contínuo à saúde!
+- **Tática de Combate com Extintor**: Acione o esguicho sobre as nuvens de fumaça para **dissipar o ar tóxico**, diminuindo o medidor de fumaça e abrindo passagem segura para o resgate de pessoas e animais.
 
 ## ⚙️ Tecnologias Utilizadas
 

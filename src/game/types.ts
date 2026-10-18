@@ -53,6 +53,10 @@ export interface FloorData {
   name: string;
   subtitle: string;
   themeColor: string;
+  floorTileColor?: string;
+  floorGroutColor?: string;
+  wallColor?: string;
+  wallBorderColor?: string;
   description: string;
   radioDispatch: string;
   width: number;
@@ -61,8 +65,8 @@ export interface FloorData {
   exitDoor: { x: number; y: number };
   timeLimitSeconds: number;
   walls: WallSegment[];
-  civilians: { id: string; name: string; x: number; y: number; quote: string }[];
-  pets: { id: string; type: 'dog' | 'cat'; name: string; x: number; y: number }[];
+  civilians: { id: string; name: string; x: number; y: number; quote: string; spriteType?: string }[];
+  pets: { id: string; type: 'dog' | 'cat' | 'bird'; name: string; x: number; y: number; spriteType?: string }[];
   fires: { id: string; x: number; y: number; size: 'small' | 'medium' | 'large' }[];
   gasValves: { id: string; x: number; y: number }[];
   electricPanels: { id: string; x: number; y: number }[];
@@ -75,7 +79,7 @@ export interface GameHUDState {
   maxHealth: number;
   extinguisher: number;
   maxExtinguisher: number;
-  heatMeter: number; // 0 to 100
+  heatMeter: number; // 0 to 100 (Smoke & Thermal Exposure)
   timeRemaining: number;
   score: number;
   stars: number;
@@ -91,4 +95,6 @@ export interface GameHUDState {
   totalElectricPanels: number;
   exitUnlocked: boolean;
   promptActionText: string | null;
+  smokeAlert?: boolean;
+  refillNeeded?: boolean;
 }
