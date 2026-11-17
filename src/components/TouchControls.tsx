@@ -1,34 +1,92 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { sounds } from '../audio/SoundManager';
+import { ContextualActionType } from '../game/types';
 
 interface TouchControlsProps {
   onMove: (vx: number, vy: number) => void;
   onSpray: (spraying: boolean) => void;
-  onSprint: (sprinting: boolean) => void;
   onInteract: () => void;
-  isStandalone?: boolean;
-  isFullscreen?: boolean;
+  contextualAction?: ContextualActionType;
+  currentFloor?: number;
+  extinguisherPercent?: number;
+  extraLift?: boolean;
+}
+
+function getActionMeta(action: ContextualActionType, currentFloor: number) {
+  switch (action) {
+    case 'civilian':
+      return {
+        icon: '🤝',
+        label: 'SALVAR',
+        classes: 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-200 text-white ring-4 ring-emerald-400/35 shadow-emerald-500/30',
+      };
+    case 'pet_dog':
+      return {
+        icon: '🐶',
+        label: 'RESGATAR',
+        classes: 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/35 shadow-amber-500/30',
+      };
+    case 'pet_cat':
+      return {
+        icon: '🐱',
+        label: 'RESGATAR',
+        classes: 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/35 shadow-amber-500/30',
+      };
+    case 'gas_valve':
+      return {
+        icon: '⚠️',
+        label: 'FECHAR',
+        classes: 'bg-gradient-to-br from-purple-600 to-fuchsia-700 border-purple-200 text-white ring-4 ring-purple-400/35 shadow-purple-500/30',
+      };
+    case 'electric_panel':
+      return {
+        icon: '⚡',
+        label: 'CORTAR',
+        classes: 'bg-gradient-to-br from-cyan-500 to-sky-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/35 shadow-cyan-500/30',
+      };
+    case 'refill_station':
+      return {
+        icon: '🚰',
+        label: 'RECARGA',
+        classes: 'bg-gradient-to-br from-sky-400 to-cyan-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/45 shadow-cyan-500/40 animate-pulse',
+      };
+    case 'exit_door':
+      return {
+        icon: currentFloor === 10 ? '🚁' : '🚪',
+        label: 'SAIR',
+        classes: 'bg-gradient-to-br from-emerald-400 to-green-600 border-emerald-100 text-slate-950 ring-4 ring-emerald-400/50 shadow-emerald-500/40 animate-pulse',
+      };
+    case 'exit_locked':
+      return {
+        icon: '🔒',
+        label: 'METAS',
+        classes: 'bg-slate-900/85 border-amber-500/60 text-amber-300',
+      };
+    default:
+      return {
+        icon: '🤝',
+        label: 'AÇÃO',
+        classes: 'bg-slate-900/70 border-slate-600/70 text-slate-300',
+      };
+  }
 }
 
 export const TouchControls: React.FC<TouchControlsProps> = ({
   onMove,
   onSpray,
-  onSprint,
   onInteract,
-  isStandalone = false,
-  isFullscreen = false,
+  contextualAction = null,
+  currentFloor = 1,
+  extinguisherPercent = 100,
+  extraLift = false,
 }) => {
   const joystickBaseRef = useRef<HTMLDivElement>(null);
   const [joystickPos, setJoystickPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isAutoSprinting, setIsAutoSprinting] = useState(false);
   const touchIdRef = useRef<number | null>(null);
 
   const [isSpraying, setIsSpraying] = useState(false);
-  const [isSprinting, setIsSprinting] = useState(false);
-  const [extraLift, setExtraLift] = useState<boolean>(() => {
-    // If not standalone and not fullscreen, default to lifted controls so browser bars don't cover them
-    return !isStandalone && !isFullscreen;
-  });
   const sprayMinTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sprayPressedRef = useRef<boolean>(false);
 
@@ -65,6 +123,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
       if (e.changedTouches[i].identifier === touchIdRef.current) {
         touchIdRef.current = null;
         setIsDragging(false);
+        setIsAutoSprinting(false);
         setJoystickPos({ x: 0, y: 0 });
         onMove(0, 0);
         break;
@@ -94,6 +153,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     // Normalize -1 to 1 vector
     const normX = stickX / maxRadius;
     const normY = stickY / maxRadius;
+    setIsAutoSprinting(Math.hypot(normX, normY) >= 0.85);
     onMove(normX, normY);
   };
 
@@ -108,7 +168,6 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
   const stopSpraying = () => {
     sprayPressedRef.current = false;
-    // Keep spraying for at least 280ms if quick tap so fires always take a solid burst
     if (sprayMinTimerRef.current) clearTimeout(sprayMinTimerRef.current);
     sprayMinTimerRef.current = setTimeout(() => {
       if (!sprayPressedRef.current) {
@@ -118,15 +177,18 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
     }, 280);
   };
 
+  const actionMeta = getActionMeta(contextualAction, currentFloor);
+  const isTankEmpty = extinguisherPercent <= 0;
+
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 pointer-events-none z-40 select-none flex justify-between items-end p-2 sm:p-4 transition-all duration-200 ${
+      className={`fixed inset-x-0 bottom-0 pointer-events-none z-40 select-none flex justify-between items-end px-3 sm:px-5 pt-2 transition-all duration-200 ${
         extraLift
-          ? 'pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+26px))]'
-          : 'pb-[max(0.85rem,calc(env(safe-area-inset-bottom)+6px))]'
+          ? 'pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+24px))]'
+          : 'pb-[max(0.85rem,calc(env(safe-area-inset-bottom)+8px))]'
       }`}
     >
-      {/* Left: Virtual Joystick */}
+      {/* Left: Virtual Joystick (Auto-sprints at >= 85% tilt) */}
       <div className="pointer-events-auto touch-none">
         <div
           ref={joystickBaseRef}
@@ -134,78 +196,37 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-slate-900/80 border-2 border-orange-500/50 backdrop-blur-xs flex items-center justify-center shadow-2xl active:border-orange-400"
+          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-slate-950/75 backdrop-blur-sm border-2 flex items-center justify-center shadow-2xl transition-colors ${
+            isAutoSprinting
+              ? 'border-amber-400 ring-4 ring-amber-400/25'
+              : 'border-orange-500/50 active:border-orange-400'
+          }`}
         >
           {/* Base guide marks */}
-          <div className="absolute w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-orange-500/30" />
-          <div className="absolute top-1 text-[8px] sm:text-[9px] text-orange-400/80 font-bold">▲</div>
-          <div className="absolute bottom-1 text-[8px] sm:text-[9px] text-orange-400/80 font-bold">▼</div>
-          <div className="absolute left-1.5 text-[8px] sm:text-[9px] text-orange-400/80 font-bold">◀</div>
-          <div className="absolute right-1.5 text-[8px] sm:text-[9px] text-orange-400/80 font-bold">▶</div>
+          <div className="absolute w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-orange-500/25" />
+          <div className="absolute top-1 text-[8px] text-orange-400/75 font-bold">▲</div>
+          <div className="absolute bottom-1 text-[8px] text-orange-400/75 font-bold">▼</div>
+          <div className="absolute left-1.5 text-[8px] text-orange-400/75 font-bold">◀</div>
+          <div className="absolute right-1.5 text-[8px] text-orange-400/75 font-bold">▶</div>
 
           {/* Stick Knob */}
           <div
-            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 shadow-xl border-2 border-amber-300 flex items-center justify-center transition-transform ${isDragging ? 'scale-95 ring-4 ring-orange-500/30' : ''}`}
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 shadow-xl border-2 border-amber-300 flex items-center justify-center transition-transform ${
+              isDragging ? 'scale-95 ring-4 ring-orange-500/30' : ''
+            }`}
             style={{
               transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`,
-              transition: isDragging ? 'none' : 'transform 0.15s ease-out'
+              transition: isDragging ? 'none' : 'transform 0.15s ease-out',
             }}
           >
-            <span className="text-white text-xs font-black">🚒</span>
+            <span className="text-white text-xs font-black">{isAutoSprinting ? '⚡' : '🚒'}</span>
           </div>
         </div>
       </div>
 
-      {/* Center Height / Elevation Toggle on mobile */}
-      <div className="pointer-events-auto pb-1 flex flex-col items-center">
-        <button
-          onClick={() => setExtraLift(!extraLift)}
-          className="text-[9px] font-bold text-slate-400 hover:text-white bg-slate-900/85 hover:bg-slate-800 border border-slate-700/70 rounded-full px-2 py-0.5 shadow-md active:scale-95 transition flex items-center gap-1 backdrop-blur-xs"
-          title="Ajustar posição dos controles para evitar a barra do navegador"
-        >
-          <span>{extraLift ? '▼ Baixar' : '▲ Elevar'}</span>
-        </button>
-      </div>
-
-      {/* Right: Ergonomic Action Buttons */}
-      <div className="pointer-events-auto flex items-end gap-2 sm:gap-3 touch-none">
-        {/* Sprint Button */}
-        <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            setIsSprinting(true);
-            onSprint(true);
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            setIsSprinting(false);
-            onSprint(false);
-          }}
-          onTouchCancel={(e) => {
-            e.preventDefault();
-            setIsSprinting(false);
-            onSprint(false);
-          }}
-          onMouseDown={() => {
-            setIsSprinting(true);
-            onSprint(true);
-          }}
-          onMouseUp={() => {
-            setIsSprinting(false);
-            onSprint(false);
-          }}
-          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl transition-all ${
-            isSprinting
-              ? 'bg-amber-500 border-amber-200 scale-95 ring-4 ring-amber-400/30'
-              : 'bg-slate-900/85 border-amber-500/60 text-amber-300 active:scale-95'
-          }`}
-          title="Correr"
-        >
-          <span className="text-base sm:text-lg">⚡</span>
-          <span className="text-[8px] sm:text-[9px] font-black tracking-tight">CORRER</span>
-        </button>
-
-        {/* Interact / Rescue Button */}
+      {/* Right: 2 Ergonomic Thumb Buttons (Contextual Action + Extinguisher Spray) */}
+      <div className="pointer-events-auto flex items-end gap-3 touch-none">
+        {/* Contextual Action Button */}
         <button
           onTouchStart={(e) => {
             e.preventDefault();
@@ -216,14 +237,16 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
             sounds.playClick();
             onInteract();
           }}
-          className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 border-2 border-emerald-300/80 text-white flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all"
-          title="Salvar / Interagir"
+          className={`w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all ${actionMeta.classes}`}
+          title="Interagir com o objetivo próximo"
         >
-          <span className="text-lg sm:text-xl">🤝</span>
-          <span className="text-[9px] sm:text-[10px] font-extrabold tracking-wider mt-0.5">SALVAR</span>
+          <span className="text-xl leading-none">{actionMeta.icon}</span>
+          <span className="text-[9px] font-black tracking-wide uppercase mt-1 leading-none">
+            {actionMeta.label}
+          </span>
         </button>
 
-        {/* Extinguisher Spray Button */}
+        {/* Primary Extinguisher Spray Button */}
         <button
           onTouchStart={(e) => {
             e.preventDefault();
@@ -243,16 +266,18 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           onMouseUp={() => {
             stopSpraying();
           }}
-          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-3 flex flex-col items-center justify-center shadow-2xl transition-all ${
-            isSpraying
-              ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 scale-95 ring-4 ring-cyan-400/60'
-              : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
+          className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-3xl border-2 flex flex-col items-center justify-center shadow-2xl transition-all ${
+            isTankEmpty
+              ? 'bg-red-950/90 border-red-400 text-red-200 active:scale-95'
+              : isSpraying
+                ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 text-white scale-95 ring-4 ring-cyan-400/50'
+                : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
           }`}
           title="Extinguir Chamas"
         >
-          <span className={`text-xl sm:text-2xl ${isSpraying ? 'scale-110' : 'animate-pulse'}`}>🧯</span>
-          <span className="text-[9px] sm:text-[10px] font-black tracking-wider uppercase mt-0.5">
-            {isSpraying ? 'LANÇANDO' : 'EXTINGUIR'}
+          <span className={`text-2xl leading-none ${isSpraying ? 'scale-110' : ''}`}>🧯</span>
+          <span className="text-[9px] font-black tracking-wider uppercase mt-1 leading-none">
+            {isTankEmpty ? 'VAZIO' : isSpraying ? 'JATO' : 'EXTINTOR'}
           </span>
         </button>
       </div>

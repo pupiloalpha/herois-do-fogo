@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
+import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize, ArrowUpDown } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface PauseModalProps {
@@ -12,6 +12,8 @@ interface PauseModalProps {
   onToggleMute: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  extraLift?: boolean;
+  onToggleExtraLift?: () => void;
 }
 
 export const PauseModal: React.FC<PauseModalProps> = ({
@@ -24,6 +26,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onToggleMute,
   isFullscreen = false,
   onToggleFullscreen,
+  extraLift = false,
+  onToggleExtraLift,
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
@@ -35,7 +39,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           {floorNumber}º ANDAR
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Pontuação Atual: <strong className="text-amber-400 font-mono">{score.toLocaleString('pt-BR')} PTS</strong>
+          Pontuação: <strong className="text-amber-400 font-mono tabular-nums">{score.toLocaleString('pt-BR')} PTS</strong>
         </p>
 
         <div className="space-y-2.5 my-5">
@@ -44,7 +48,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               sounds.playClick();
               onResume();
             }}
-            className="w-full py-3 sm:py-3.5 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95 transition"
+            className="w-full min-h-[48px] py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-xl flex items-center justify-center gap-2 active:scale-95 transition"
           >
             <Play className="w-4 h-4 fill-white" />
             <span>CONTINUAR MISSÃO</span>
@@ -55,10 +59,10 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               sounds.playClick();
               onRestartFloor();
             }}
-            className="w-full py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
+            className="w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>REINICIAR ESTE ANDAR</span>
+            <span>REINICIAR ANDAR</span>
           </button>
 
           <button
@@ -66,7 +70,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               sounds.playClick();
               onToggleMute();
             }}
-            className="w-full py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
+            className="w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
             <span>{isMuted ? 'ATIVAR SONS' : 'SILENCIAR SONS'}</span>
@@ -78,10 +82,23 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                 sounds.playClick();
                 onToggleFullscreen();
               }}
-              className="w-full py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-amber-500/30"
+              className="w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-amber-500/30"
             >
               {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-              <span>{isFullscreen ? 'SAIR DA TELA CHEIA' : 'ENTRAR EM TELA CHEIA (OCULTAR BARRAS)'}</span>
+              <span>{isFullscreen ? 'SAIR DA TELA CHEIA' : 'TELA CHEIA'}</span>
+            </button>
+          )}
+
+          {onToggleExtraLift && (
+            <button
+              onClick={() => {
+                sounds.playClick();
+                onToggleExtraLift();
+              }}
+              className="md:hidden w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
+            >
+              <ArrowUpDown className="w-4 h-4 text-cyan-400" />
+              <span>{extraLift ? 'BAIXAR CONTROLES NA TELA' : 'ELEVAR CONTROLES NA TELA'}</span>
             </button>
           )}
 
@@ -90,10 +107,10 @@ export const PauseModal: React.FC<PauseModalProps> = ({
               sounds.playClick();
               onHome();
             }}
-            className="w-full py-2.5 rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
+            className="w-full min-h-[44px] py-2.5 rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
           >
             <Home className="w-4 h-4" />
-            <span>VOLTAR AO MENU INICIAL</span>
+            <span>MENU INICIAL</span>
           </button>
         </div>
       </div>

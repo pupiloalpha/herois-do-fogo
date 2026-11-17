@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CharacterId, FloorData, GameHUDState } from './types';
+import { CharacterId, ContextualActionType, FloorData, GameHUDState } from './types';
 import { CHARACTERS } from './charactersData';
 import { FLOORS_DATA } from './floorsData';
 import { TextureGenerator } from './TextureGenerator';
@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
   private cutElectricPanelsCount: number = 0;
   private exitUnlocked: boolean = false;
   private promptText: string | null = null;
+  private contextualAction: ContextualActionType = null;
   private isCompleted: boolean = false;
 
   // Callbacks
@@ -126,6 +127,7 @@ export class GameScene extends Phaser.Scene {
     this.exitUnlocked = false;
     this.isCompleted = false;
     this.isSpraying = false;
+    this.contextualAction = null;
     this.touchMoveVector = { x: 0, y: 0 };
   }
 
@@ -550,12 +552,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Touch joystick takes precedence if present
+    let joystickAutoSprint = false;
     if (Math.abs(this.touchMoveVector.x) > 0.05 || Math.abs(this.touchMoveVector.y) > 0.05) {
       moveX = this.touchMoveVector.x;
       moveY = this.touchMoveVector.y;
+      joystickAutoSprint = Math.hypot(moveX, moveY) >= 0.85;
     }
 
-    this.isSprinting = (this.keyShift?.isDown || this.touchSprinting);
+    this.isSprinting = (this.keyShift?.isDown || this.touchSprinting || joystickAutoSprint);
     const speedMult = this.isSprinting ? 1.4 : 1.0;
     // Toxic smoke inhalation reduces firefighter movement speed
     const smokePenalty = this.heatMeter >= 65 ? Math.max(0.68, 1.0 - ((this.heatMeter - 65) / 35) * 0.32) : 1.0;
@@ -798,34 +802,44 @@ export class GameScene extends Phaser.Scene {
       switch (nearest.type) {
         case 'civilian':
           this.promptText = `[INTERAGIR] Salvar ${nearest.name} 🤝`;
+          this.contextualAction = 'civilian';
           break;
         case 'pet_dog':
           this.promptText = `[INTERAGIR] Resgatar Cãozinho ${nearest.name} 🐶`;
+          this.contextualAction = 'pet_dog';
           break;
         case 'pet_cat':
           this.promptText = `[INTERAGIR] Resgatar Gatinho ${nearest.name} 🐱`;
+          this.contextualAction = 'pet_cat';
           break;
         case 'gas_valve':
           this.promptText = `[INTERAGIR] Fechar Válvula de Gás GLP ⚠️`;
+          this.contextualAction = 'gas_valve';
           break;
         case 'electric_panel':
           this.promptText = `[INTERAGIR] Desligar Quadro Energizado ⚡`;
+          this.contextualAction = 'electric_panel';
           break;
         case 'refill_station':
           this.promptText = `[INTERAGIR] Recarregar 100% de Água no Hidrante 🚰`;
+          this.contextualAction = 'refill_station';
           break;
         case 'exit_door':
           if (this.exitUnlocked) {
             this.promptText = this.floorNumber === 10 ? `[INTERAGIR] Embarcar no Helicóptero! 🚁` : `[INTERAGIR] Subir para o Próximo Andar 🚪`;
+            this.contextualAction = 'exit_door';
           } else {
             this.promptText = `Porta Trancada: Conclua os resgates e apague os focos!`;
+            this.contextualAction = 'exit_locked';
           }
           break;
       }
     } else if (this.extinguisher <= 0) {
       this.promptText = '🚰 EXTINTOR VAZIO! Vá ao Hidrante [🚰] e aperte [AÇÃO] para 100% de água!';
+      this.contextualAction = null;
     } else {
       this.promptText = null;
+      this.contextualAction = null;
     }
   }
 
@@ -1072,6 +1086,7 @@ export class GameScene extends Phaser.Scene {
       totalElectricPanels: totalElec,
       exitUnlocked: this.exitUnlocked,
       promptActionText: this.promptText,
+      contextualAction: this.contextualAction,
       smokeAlert: this.heatMeter >= 70,
       refillNeeded: this.extinguisher <= 15
     });

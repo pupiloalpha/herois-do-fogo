@@ -73,6 +73,17 @@ export interface FloorData {
   refillStations: { id: string; x: number; y: number }[];
 }
 
+export type ContextualActionType =
+  | 'civilian'
+  | 'pet_dog'
+  | 'pet_cat'
+  | 'gas_valve'
+  | 'electric_panel'
+  | 'refill_station'
+  | 'exit_door'
+  | 'exit_locked'
+  | null;
+
 export interface GameHUDState {
   currentFloor: number;
   health: number;
@@ -95,6 +106,7 @@ export interface GameHUDState {
   totalElectricPanels: number;
   exitUnlocked: boolean;
   promptActionText: string | null;
+  contextualAction?: ContextualActionType;
   smokeAlert?: boolean;
   refillNeeded?: boolean;
 }

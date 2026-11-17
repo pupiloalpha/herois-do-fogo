@@ -210,20 +210,16 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({ onClose })
                   </span>
                   <ul className="space-y-2 text-xs sm:text-sm text-slate-300">
                     <li className="flex items-center justify-between bg-slate-900/90 p-2 rounded-xl">
-                      <span>Direção:</span>
-                      <strong className="text-white">Joystick Virtual (Esquerda)</strong>
+                      <span>Mover e Correr:</span>
+                      <strong className="text-white">Joystick (borda corre)</strong>
                     </li>
                     <li className="flex items-center justify-between bg-slate-900/90 p-2 rounded-xl">
-                      <span>Extinguir Fogo / Fumaça:</span>
-                      <strong className="text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded">Botão Laranja</strong>
+                      <span>Ação Contextual:</span>
+                      <strong className="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded">Botão Dinâmico</strong>
                     </li>
                     <li className="flex items-center justify-between bg-slate-900/90 p-2 rounded-xl">
-                      <span>Salvar / Recarregar:</span>
-                      <strong className="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded">Botão Verde</strong>
-                    </li>
-                    <li className="flex items-center justify-between bg-slate-900/90 p-2 rounded-xl">
-                      <span>Ajustar Altura:</span>
-                      <strong className="text-slate-300 bg-slate-800 px-2 py-0.5 rounded">Botão ↕ Altura</strong>
+                      <span>Extinguir Fogo:</span>
+                      <strong className="text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded">Botão Extintor</strong>
                     </li>
                   </ul>
                 </div>
@@ -232,7 +228,7 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({ onClose })
               <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs sm:text-sm text-slate-300 flex items-center gap-2">
                 <span className="text-base">💡</span>
                 <span>
-                  <strong>Ajuste no Celular:</strong> Se as barras do navegador cobrirem os botões, toque no botão <strong>↕ Altura</strong> no canto da tela para elevar os controles ou ative a <strong>Tela Cheia [⛶]</strong>.
+                  <strong>Dica no Celular:</strong> Você pode ajustar a altura dos botões de toque ou ativar a <strong>Tela Cheia</strong> diretamente no menu de <strong>Pausa (⏸)</strong>.
                 </span>
               </div>
             </div>

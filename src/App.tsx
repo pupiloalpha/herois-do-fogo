@@ -40,6 +40,7 @@ export default function App() {
   const [gameOverReason, setGameOverReason] = useState<string>('');
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(sounds.getMuted());
+  const [extraLift, setExtraLift] = useState<boolean>(() => !isStandalone && !isFullscreen);
 
   // HUD stats from Phaser engine
   const [hudState, setHudState] = useState<GameHUDState>({
@@ -64,6 +65,7 @@ export default function App() {
     totalElectricPanels: 1,
     exitUnlocked: false,
     promptActionText: null,
+    contextualAction: null,
   });
 
   const phaserRef = useRef<PhaserGameRef>(null);
@@ -201,10 +203,11 @@ export default function App() {
             <TouchControls
               onMove={(vx, vy) => phaserRef.current?.setMovement(vx, vy)}
               onSpray={(spraying) => phaserRef.current?.setSpraying(spraying)}
-              onSprint={(sprinting) => phaserRef.current?.setSprinting(sprinting)}
               onInteract={() => phaserRef.current?.triggerInteract()}
-              isStandalone={isStandalone}
-              isFullscreen={isFullscreen}
+              contextualAction={hudState.contextualAction ?? null}
+              currentFloor={currentFloor}
+              extinguisherPercent={hudState.extinguisher}
+              extraLift={extraLift}
             />
           )}
 
@@ -228,6 +231,8 @@ export default function App() {
               onToggleMute={handleToggleMute}
               isFullscreen={isFullscreen}
               onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
+              extraLift={extraLift}
+              onToggleExtraLift={() => setExtraLift(prev => !prev)}
             />
           )}
 
