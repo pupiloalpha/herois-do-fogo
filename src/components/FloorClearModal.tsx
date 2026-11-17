@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Star, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Trophy, Star, ArrowRight, ShieldCheck, Flame } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface FloorClearModalProps {
   floorNumber: number;
   score: number;
   stars: number;
+  fireSpreadIncreased?: boolean;
+  fireSpreadSpeed?: number;
   onNextFloor: () => void;
 }
 
@@ -14,6 +16,8 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
   floorNumber,
   score,
   stars,
+  fireSpreadIncreased = false,
+  fireSpreadSpeed = 1.0,
   onNextFloor,
 }) => {
   useEffect(() => {
@@ -65,7 +69,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
         </div>
 
         {/* Score display */}
-        <div className="bg-slate-950/80 rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-around mb-5">
+        <div className="bg-slate-950/80 rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-around mb-4">
           <div>
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
               PONTUAÇÃO ATUAL
@@ -76,6 +80,15 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
             </div>
           </div>
         </div>
+
+        {fireSpreadIncreased && (
+          <div className="mb-4 rounded-2xl bg-orange-950/60 border border-orange-500/40 px-3 py-2 text-xs text-orange-200 flex items-center justify-center gap-2">
+            <Flame className="w-4 h-4 text-orange-400 shrink-0" />
+            <span>
+              <strong>Desafio Extra (+50% Vida):</strong> Chamas {Math.round(fireSpreadSpeed * 100)}% mais rápidas no próximo andar.
+            </span>
+          </div>
+        )}
 
         {/* CTA */}
         <button

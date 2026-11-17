@@ -15,8 +15,9 @@ interface PhaserGameProps {
   characterId: CharacterId;
   floorNumber: number;
   initialScore: number;
+  fireSpreadSpeed?: number;
   onHudUpdate: (hud: GameHUDState) => void;
-  onFloorClear: (score: number, stars: number) => void;
+  onFloorClear: (score: number, stars: number, remainingHealth: number, maxHealth: number) => void;
   onGameOver: (reason: string) => void;
 }
 
@@ -24,6 +25,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
   characterId,
   floorNumber,
   initialScore,
+  fireSpreadSpeed = 1.0,
   onHudUpdate,
   onFloorClear,
   onGameOver
@@ -31,6 +33,8 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<GameScene | null>(null);
+  const latestSpreadSpeedRef = useRef<number>(fireSpreadSpeed);
+  latestSpreadSpeedRef.current = fireSpreadSpeed;
 
   // Expose imperative handle for mobile touch controls
   useImperativeHandle(ref, () => ({
@@ -52,6 +56,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
           characterId,
           floorNumber,
           initialScore,
+          fireSpreadSpeed: latestSpreadSpeedRef.current,
           onHudUpdate,
           onFloorClear,
           onGameOver
@@ -99,6 +104,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
         characterId,
         floorNumber,
         initialScore,
+        fireSpreadSpeed: latestSpreadSpeedRef.current,
         onHudUpdate,
         onFloorClear,
         onGameOver

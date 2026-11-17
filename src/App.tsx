@@ -6,6 +6,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CharacterId, GameHUDState } from './game/types';
 import { FLOORS_DATA } from './game/floorsData';
+import { calculateNextFireSpreadSpeed } from './game/fireMechanics';
 import { PhaserGame, PhaserGameRef } from './game/PhaserGame';
 import { TitleScreen } from './components/TitleScreen';
 import { FloorBriefingModal } from './components/FloorBriefingModal';
@@ -41,6 +42,8 @@ export default function App() {
   const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(sounds.getMuted());
   const [extraLift, setExtraLift] = useState<boolean>(() => !isStandalone && !isFullscreen);
+  const [fireSpreadSpeed, setFireSpreadSpeed] = useState<number>(1.0);
+  const [fireSpreadIncreased, setFireSpreadIncreased] = useState<boolean>(false);
 
   // HUD stats from Phaser engine
   const [hudState, setHudState] = useState<GameHUDState>({
@@ -99,6 +102,8 @@ export default function App() {
     }
     setCurrentFloor(1);
     setScore(0);
+    setFireSpreadSpeed(1.0);
+    setFireSpreadIncreased(false);
     setGameState('briefing');
   }, [isFullscreenSupported, isFullscreen, isStandalone, enterFullscreen]);
 
@@ -111,15 +116,18 @@ export default function App() {
     setScore(hud.score);
   }, []);
 
-  const handleFloorClear = useCallback((clearedScore: number, stars: number) => {
+  const handleFloorClear = useCallback((clearedScore: number, stars: number, remainingHealth: number, maxHealth: number) => {
     setScore(clearedScore);
     setFloorStars(stars);
+    const { nextSpeed, increased } = calculateNextFireSpreadSpeed(fireSpreadSpeed, remainingHealth, maxHealth);
+    setFireSpreadSpeed(nextSpeed);
+    setFireSpreadIncreased(increased);
     if (currentFloor >= 10) {
       setGameState('grand_victory');
     } else {
       setGameState('floor_clear');
     }
-  }, [currentFloor]);
+  }, [currentFloor, fireSpreadSpeed]);
 
   const handleNextFloor = useCallback(() => {
     if (currentFloor < 10) {
@@ -183,6 +191,7 @@ export default function App() {
             characterId={selectedCharacter}
             floorNumber={currentFloor}
             initialScore={score}
+            fireSpreadSpeed={fireSpreadSpeed}
             onHudUpdate={handleHudUpdate}
             onFloorClear={handleFloorClear}
             onGameOver={handleGameOver}
@@ -242,6 +251,8 @@ export default function App() {
               floorNumber={currentFloor}
               score={score}
               stars={floorStars}
+              fireSpreadIncreased={fireSpreadIncreased}
+              fireSpreadSpeed={fireSpreadSpeed}
               onNextFloor={handleNextFloor}
             />
           )}

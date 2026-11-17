@@ -9,8 +9,9 @@ interface SceneInitData {
   characterId: CharacterId;
   floorNumber: number;
   initialScore?: number;
+  fireSpreadSpeed?: number;
   onHudUpdate?: (hud: GameHUDState) => void;
-  onFloorClear?: (score: number, stars: number) => void;
+  onFloorClear?: (score: number, stars: number, remainingHealth: number, maxHealth: number) => void;
   onGameOver?: (reason: string) => void;
 }
 
@@ -75,6 +76,10 @@ export class GameScene extends Phaser.Scene {
   private rescuedCiviliansCount: number = 0;
   private rescuedPetsCount: number = 0;
   private extinguishedFiresCount: number = 0;
+  private totalFiresCount: number = 0;
+  private fireSpreadSpeed: number = 1.0;
+  private fireSpreadTimer: number = 0;
+  private spreadFiresSpawned: number = 0;
   private closedGasValvesCount: number = 0;
   private cutElectricPanelsCount: number = 0;
   private exitUnlocked: boolean = false;
@@ -84,7 +89,7 @@ export class GameScene extends Phaser.Scene {
 
   // Callbacks
   private onHudUpdateCallback?: (hud: GameHUDState) => void;
-  private onFloorClearCallback?: (score: number, stars: number) => void;
+  private onFloorClearCallback?: (score: number, stars: number, remainingHealth: number, maxHealth: number) => void;
   private onGameOverCallback?: (reason: string) => void;
 
   // Input keys
@@ -122,6 +127,10 @@ export class GameScene extends Phaser.Scene {
     this.rescuedCiviliansCount = 0;
     this.rescuedPetsCount = 0;
     this.extinguishedFiresCount = 0;
+    this.totalFiresCount = this.floorData.fires.length;
+    this.fireSpreadSpeed = Math.max(1.0, data.fireSpreadSpeed ?? 1.0);
+    this.fireSpreadTimer = 0;
+    this.spreadFiresSpawned = 0;
     this.closedGasValvesCount = 0;
     this.cutElectricPanelsCount = 0;
     this.exitUnlocked = false;
@@ -394,62 +403,7 @@ export class GameScene extends Phaser.Scene {
     this.fires = [];
     this.smokeClouds = [];
     this.floorData.fires.forEach(f => {
-      let hp = 45;
-      let radius = 24;
-      let scale = 1.0;
-      if (f.size === 'medium') {
-        hp = 80;
-        radius = 32;
-        scale = 1.35;
-      } else if (f.size === 'large') {
-        hp = 135;
-        radius = 44;
-        scale = 1.75;
-      }
-
-      const fireSprite = this.add.sprite(f.x, f.y, 'fire_flame', 0).setDepth(6);
-      fireSprite.setScale(scale);
-
-      // Flame flicker tween
-      this.tweens.add({
-        targets: fireSprite,
-        scaleX: scale * 1.15,
-        scaleY: scale * 0.9,
-        duration: 180 + Math.random() * 80,
-        yoyo: true,
-        repeat: -1
-      });
-
-      this.fires.push({
-        id: f.id,
-        sprite: fireSprite,
-        hp,
-        maxHp: hp,
-        radius,
-        x: f.x,
-        y: f.y
-      });
-
-      // Spawn volumetric drifting smoke cloud above fire
-      const cloudSprite = this.add.sprite(f.x, f.y - 18, 'smoke_cloud').setDepth(8);
-      cloudSprite.setAlpha(0.55);
-      cloudSprite.setScale(scale * 1.1);
-      this.tweens.add({
-        targets: cloudSprite,
-        x: f.x + (Math.random() * 24 - 12),
-        y: f.y - 28,
-        angle: { from: -8, to: 8 },
-        duration: 2200 + Math.random() * 600,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
-      this.smokeClouds.push({
-        sprite: cloudSprite,
-        x: f.x,
-        y: f.y - 18,
-        fireId: f.id
-      });
+      this.spawnFire(f.id, f.x, f.y, f.size);
     });
 
     // Screen-fixed smoke vignette for toxic inhalation hazard
@@ -632,18 +586,130 @@ export class GameScene extends Phaser.Scene {
       this.extinguisher = Math.min(this.maxExtinguisher, this.extinguisher + 4.0 * dt);
     }
 
-    // 3. Proximity, Smoke, and Heat Check
+    // 3. Fire spread progression (accelerated if previous floor cleared with >50% health)
+    this.updateFireSpread(dt);
+
+    // 4. Proximity, Smoke, and Heat Check
     this.checkHeatAndDamage(time, dt);
 
-    // 4. Proximity prompt for interaction
+    // 5. Proximity prompt for interaction
     this.checkInteractionPrompt();
 
-    // 5. Check if 'E' or action pressed
+    // 6. Check if 'E' or action pressed
     if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
       this.performInteraction();
     }
 
     this.syncHUD();
+  }
+
+  private spawnFire(id: string, x: number, y: number, size: 'small' | 'medium' | 'large') {
+    let hp = 45;
+    let radius = 24;
+    let scale = 1.0;
+    if (size === 'medium') {
+      hp = 80;
+      radius = 32;
+      scale = 1.35;
+    } else if (size === 'large') {
+      hp = 135;
+      radius = 44;
+      scale = 1.75;
+    }
+
+    const fireSprite = this.add.sprite(x, y, 'fire_flame', 0).setDepth(6);
+    fireSprite.setScale(scale);
+
+    // Flame flicker tween
+    this.tweens.add({
+      targets: fireSprite,
+      scaleX: scale * 1.15,
+      scaleY: scale * 0.9,
+      duration: 180 + Math.random() * 80,
+      yoyo: true,
+      repeat: -1
+    });
+
+    this.fires.push({
+      id,
+      sprite: fireSprite,
+      hp,
+      maxHp: hp,
+      radius,
+      x,
+      y
+    });
+
+    // Spawn volumetric drifting smoke cloud above fire
+    const cloudSprite = this.add.sprite(x, y - 18, 'smoke_cloud').setDepth(8);
+    cloudSprite.setAlpha(0.55);
+    cloudSprite.setScale(scale * 1.1);
+    this.tweens.add({
+      targets: cloudSprite,
+      x: x + (Math.random() * 24 - 12),
+      y: y - 28,
+      angle: { from: -8, to: 8 },
+      duration: 2200 + Math.random() * 600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    this.smokeClouds.push({
+      sprite: cloudSprite,
+      x,
+      y: y - 18,
+      fireId: id
+    });
+  }
+
+  private updateFireSpread(dt: number) {
+    if (this.fires.length === 0 || this.exitUnlocked) return;
+
+    // Maximum additional spread fires per floor scales gently with fireSpreadSpeed
+    const maxExtraFires = this.fireSpreadSpeed > 1.0 ? 3 : 2;
+    if (this.spreadFiresSpawned >= maxExtraFires) return;
+
+    // Base spread interval is 16 seconds, shortened proportionally by fireSpreadSpeed
+    const spreadInterval = 16 / this.fireSpreadSpeed;
+    this.fireSpreadTimer += dt;
+
+    if (this.fireSpreadTimer < spreadInterval) return;
+    this.fireSpreadTimer = 0;
+
+    // Pick a random active fire as the ignition source
+    const source = this.fires[Math.floor(Math.random() * this.fires.length)];
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 68 + Math.random() * 42;
+      const nx = Math.round(source.x + Math.cos(angle) * dist);
+      const ny = Math.round(source.y + Math.sin(angle) * dist);
+
+      // Keep inside floor bounds
+      if (nx < 70 || nx > this.floorData.width - 70 || ny < 70 || ny > this.floorData.height - 70) {
+        continue;
+      }
+
+      // Avoid walls
+      const hitsWall = this.floorData.walls.some(
+        w => nx >= w.x - 28 && nx <= w.x + w.w + 28 && ny >= w.y - 28 && ny <= w.y + w.h + 28
+      );
+      if (hitsWall) continue;
+
+      // Avoid spawning directly on the player or on top of another fire
+      const distToPlayer = Phaser.Math.Distance.Between(this.player.x, this.player.y, nx, ny);
+      if (distToPlayer < 85) continue;
+
+      const overlapsFire = this.fires.some(f => Phaser.Math.Distance.Between(f.x, f.y, nx, ny) < 55);
+      if (overlapsFire) continue;
+
+      const newId = `spread_${this.floorNumber}_${this.spreadFiresSpawned + 1}`;
+      this.spawnFire(newId, nx, ny, 'small');
+      this.spreadFiresSpawned++;
+      this.totalFiresCount++;
+      this.sparkParticles.emitParticleAt(nx, ny, 8);
+      this.showFloatingText(nx, ny - 10, '🔥 Fogo se espalhou!', '#fb923c');
+      break;
+    }
   }
 
   private checkSprayAgainstFires(ox: number, oy: number, angle: number, power: number) {
@@ -997,7 +1063,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.onFloorClearCallback) {
-      this.onFloorClearCallback(this.score, stars);
+      this.onFloorClearCallback(this.score, stars, this.currentHealth, this.maxHealth);
     }
   }
 
@@ -1060,7 +1126,7 @@ export class GameScene extends Phaser.Scene {
 
     const totalCiv = this.floorData.civilians.length;
     const totalPet = this.floorData.pets.length;
-    const totalFire = this.floorData.fires.length;
+    const totalFire = this.totalFiresCount;
     const totalGas = this.floorData.gasValves.length;
     const totalElec = this.floorData.electricPanels.length;
 
