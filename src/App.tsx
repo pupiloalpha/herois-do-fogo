@@ -324,6 +324,7 @@ export default function App() {
               onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
               extraLift={extraLift}
               onToggleExtraLift={() => setExtraLift(prev => !prev)}
+              onOpenInstructions={() => setShowInstructions(true)}
             />
           )}
 

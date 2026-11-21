@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize, ArrowUpDown } from 'lucide-react';
+import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize, ArrowUpDown, HelpCircle } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 import { MissionId } from '../hub/types';
@@ -17,6 +17,7 @@ interface PauseModalProps {
   onToggleFullscreen?: () => void;
   extraLift?: boolean;
   onToggleExtraLift?: () => void;
+  onOpenInstructions?: () => void;
 }
 
 export const PauseModal: React.FC<PauseModalProps> = ({
@@ -32,6 +33,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onToggleFullscreen,
   extraLift = false,
   onToggleExtraLift,
+  onOpenInstructions,
 }) => {
   const isForest = missionId === 'forest_fire';
 
@@ -59,6 +61,19 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             <Play className="w-4 h-4 fill-white" />
             <span>CONTINUAR MISSÃO</span>
           </button>
+
+          {onOpenInstructions && (
+            <button
+              onClick={() => {
+                sounds.playClick();
+                onOpenInstructions();
+              }}
+              className="w-full min-h-[46px] py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-amber-500/40"
+            >
+              <HelpCircle className="w-4 h-4 text-amber-300" />
+              <span>MANUAL / COMO JOGAR</span>
+            </button>
+          )}
 
           <button
             onClick={() => {
