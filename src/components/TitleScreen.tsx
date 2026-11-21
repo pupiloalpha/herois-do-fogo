@@ -20,8 +20,6 @@ import {
   ListChecks,
   Check,
   ChevronRight,
-  Flame,
-  Sparkles,
   X,
 } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
@@ -29,6 +27,7 @@ import { FullscreenGuideModal } from './FullscreenGuideModal';
 import { StageSelectModal } from './StageSelectModal';
 import { CareerModal } from './CareerModal';
 import { MissionPreviewModal } from './MissionPreviewModal';
+import { FireEmbers } from './FireEmbers';
 
 interface TitleScreenProps {
   saveState: HubSaveState;
@@ -71,7 +70,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
   return (
     <div className="relative w-full h-full min-h-[100dvh] bg-gradient-to-b from-sky-950 via-slate-900 to-slate-950 text-white flex flex-col justify-between overflow-y-auto overscroll-contain select-none">
-      {/* 1. VIBRANT, CHEERFUL BANNER BACKGROUND */}
+      {/* 1. VIBRANT, CHEERFUL BANNER BACKGROUND WITH FIRE EMBERS */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div
           className="absolute inset-0 bg-cover bg-center filter brightness-100 contrast-105 opacity-90 sm:opacity-95"
@@ -85,6 +84,8 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
             background: 'radial-gradient(circle at 50% 15%, rgba(251, 191, 36, 0.45) 0%, transparent 65%)',
           }}
         />
+        {/* Animated Fire Embers / Fagulhas de Fogo */}
+        <FireEmbers count={36} />
       </div>
 
       {/* 2. TOP BAR HUD (Ultra-Clean on Mobile) */}
@@ -216,15 +217,13 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
       {/* 3. MAIN GAME ARENA */}
       <main className="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-6 py-1 sm:py-2 my-auto flex flex-col gap-3 sm:gap-5">
-        {/* Title Section (Compact on mobile) */}
+        {/* Title Section (Bigger title, subtle official subtitle) */}
         <section className="text-center space-y-0.5 sm:space-y-1">
-          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 text-[10px] sm:text-xs font-black tracking-wider uppercase shadow-md border border-yellow-300">
-            <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-slate-950 text-slate-950" />
-            <span>Jogo Oficial CBMMG</span>
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-slate-950 text-slate-950" />
-          </div>
+          <p className="text-[10px] sm:text-xs font-semibold tracking-widest text-amber-200/60 uppercase">
+            Jogo Oficial CBMMG
+          </p>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-none uppercase drop-shadow-xl">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-none uppercase drop-shadow-2xl">
             <span className="bg-gradient-to-b from-yellow-200 via-amber-300 to-orange-500 bg-clip-text text-transparent text-glow-fire">
               HERÓIS DO FOGO
             </span>
@@ -261,7 +260,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                     sounds.playClick();
                     onSelectCharacter(charId);
                   }}
-                  className={`relative p-2 sm:p-3 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all duration-150 flex items-center gap-2 sm:gap-3.5 backdrop-blur-md cursor-pointer ${
+                  className={`relative min-h-[86px] sm:min-h-[96px] p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all duration-150 flex items-center gap-2.5 sm:gap-3.5 backdrop-blur-md cursor-pointer ${
                     isSelected
                       ? isFoguinho
                         ? 'bg-amber-950/80 border-amber-400 ring-2 sm:ring-4 ring-amber-400/40 box-glow-amber scale-[1.01]'
@@ -271,7 +270,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                 >
                   {/* Selected Tag Badge */}
                   {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-yellow-200">
+                    <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-yellow-200 z-10">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                       <span>Ativo</span>
                     </div>
@@ -282,7 +281,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                     <img
                       src={char.avatarUrl}
                       alt={char.name}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover border-2 shadow-md ${
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl object-cover border-2 shadow-md ${
                         isSelected
                           ? isFoguinho
                             ? 'border-amber-400 ring-1 sm:ring-2 ring-amber-300'
@@ -296,14 +295,14 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                   </div>
 
                   {/* Character Quick Info */}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm sm:text-lg font-black text-white leading-tight drop-shadow truncate">
+                  <div className="min-w-0 flex-1 flex flex-col justify-center">
+                    <h3 className="text-sm sm:text-lg font-black text-white leading-tight drop-shadow truncate pr-8 sm:pr-0">
                       {char.name}
                     </h3>
-                    <p className={`text-[10px] sm:text-xs font-black uppercase truncate ${isFoguinho ? 'text-amber-300' : 'text-orange-300'}`}>
+                    <p className={`text-[10px] sm:text-xs font-black uppercase truncate mt-0.5 ${isFoguinho ? 'text-amber-300' : 'text-orange-300'}`}>
                       {isFoguinho ? '🛡️ O Forte do Fogo' : '⚡ A Veloz do Resgate'}
                     </p>
-                    <p className="text-[9px] sm:text-xs text-amber-100/90 font-medium line-clamp-1 hidden sm:block">
+                    <p className="text-[9px] sm:text-xs text-amber-100/90 font-medium line-clamp-1 hidden sm:block mt-0.5">
                       {isFoguinho ? 'Resiste a calor e chamas' : 'Ágil para salvar pessoas'}
                     </p>
                   </div>
