@@ -1,11 +1,15 @@
 /**
- * Heróis do Fogo: Missão 10 Andares
- * Jogo Arcade PWA com Foguinho e Faísca (CBMMG)
+ * Heróis do Fogo: Hub de Operações CBMMG
+ * Missão 1: Resgate nos 10 Andares (Ativa)
+ * Missão 2: Operação Enchentes (Planejada)
+ * Missão 3: Incêndio Florestal (Ativa)
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CharacterId, GameHUDState } from './game/types';
 import { FLOORS_DATA } from './game/floorsData';
+import { FOREST_SECTORS } from './game/forest/forestData';
+import { FOREST_TOOLS } from './game/forest/forestTypes';
 import { calculateNextFireSpreadSpeed } from './game/fireMechanics';
 import { PhaserGame, PhaserGameRef } from './game/PhaserGame';
 import { TitleScreen } from './components/TitleScreen';
@@ -22,8 +26,41 @@ import { sounds } from './audio/SoundManager';
 import { useFullscreen } from './hooks/useFullscreen';
 import { useVisualViewport } from './hooks/useVisualViewport';
 import { getIsStandalone } from './pwa/usePWAInstall';
+import { MISSIONS_BY_ID } from './hub/missionsCatalog';
+import {
+  loadHubSaveState,
+  recordStageClear,
+  resetHubSaveState,
+  saveHubState,
+} from './hub/hubProgress';
+import { HubSaveState, MedalDefinition, MissionId } from './hub/types';
 
 type GameState = 'title' | 'briefing' | 'playing' | 'paused' | 'floor_clear' | 'game_over' | 'grand_victory';
+
+const INITIAL_HUD_STATE: GameHUDState = {
+  currentFloor: 1,
+  health: 100,
+  maxHealth: 100,
+  extinguisher: 100,
+  maxExtinguisher: 100,
+  heatMeter: 0,
+  timeRemaining: 90,
+  score: 0,
+  stars: 3,
+  rescuedCivilians: 0,
+  totalCivilians: 1,
+  rescuedPets: 0,
+  totalPets: 0,
+  extinguishedFires: 0,
+  totalFires: 3,
+  closedGasValves: 0,
+  totalGasValves: 0,
+  cutElectricPanels: 0,
+  totalElectricPanels: 1,
+  exitUnlocked: false,
+  promptActionText: null,
+  contextualAction: null,
+};
 
 export default function App() {
   // Sync real visible screen dimensions with CSS variables
@@ -33,8 +70,12 @@ export default function App() {
   const { isFullscreen, toggleFullscreen, enterFullscreen, isSupported: isFullscreenSupported } = useFullscreen();
   const [isStandalone] = useState(() => getIsStandalone());
 
+  // Hub persistent state
+  const [hubSave, setHubSave] = useState<HubSaveState>(() => loadHubSaveState());
+  const [activeMissionId, setActiveMissionId] = useState<MissionId>('vertical_10');
+  const [newlyUnlockedMedals, setNewlyUnlockedMedals] = useState<MedalDefinition[]>([]);
+
   const [gameState, setGameState] = useState<GameState>('title');
-  const [selectedCharacter, setSelectedCharacter] = useState<CharacterId>('foguinho');
   const [currentFloor, setCurrentFloor] = useState<number>(1);
   const [score, setScore] = useState<number>(0);
   const [floorStars, setFloorStars] = useState<number>(3);
@@ -46,37 +87,32 @@ export default function App() {
   const [fireSpreadIncreased, setFireSpreadIncreased] = useState<boolean>(false);
 
   // HUD stats from Phaser engine
-  const [hudState, setHudState] = useState<GameHUDState>({
-    currentFloor: 1,
-    health: 100,
-    maxHealth: 100,
-    extinguisher: 100,
-    maxExtinguisher: 100,
-    heatMeter: 0,
-    timeRemaining: 90,
-    score: 0,
-    stars: 3,
-    rescuedCivilians: 0,
-    totalCivilians: 1,
-    rescuedPets: 0,
-    totalPets: 0,
-    extinguishedFires: 0,
-    totalFires: 3,
-    closedGasValves: 0,
-    totalGasValves: 0,
-    cutElectricPanels: 0,
-    totalElectricPanels: 1,
-    exitUnlocked: false,
-    promptActionText: null,
-    contextualAction: null,
-  });
+  const [hudState, setHudState] = useState<GameHUDState>(INITIAL_HUD_STATE);
+  const hudStateRef = useRef<GameHUDState>(INITIAL_HUD_STATE);
 
   const phaserRef = useRef<PhaserGameRef>(null);
+
+  const selectedCharacter = hubSave.selectedCharacter;
+  const activeMission = MISSIONS_BY_ID[activeMissionId];
 
   // Sound mute toggle
   const handleToggleMute = useCallback(() => {
     const nextMuted = sounds.toggleMute();
     setIsMuted(nextMuted);
+  }, []);
+
+  // Persist character choice in Hub store
+  const handleSelectCharacter = useCallback((charId: CharacterId) => {
+    setHubSave(prev => {
+      const next: HubSaveState = { ...prev, selectedCharacter: charId };
+      saveHubState(next);
+      return next;
+    });
+  }, []);
+
+  const handleResetProgress = useCallback(() => {
+    const fresh = resetHubSaveState();
+    setHubSave(fresh);
   }, []);
 
   // Keyboard shortcut for Pause (Esc or P)
@@ -94,16 +130,23 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
-  // Handlers for game flow
-  const handleStartFromTitle = useCallback(() => {
+  // Launch a mission stage from Hub
+  const handleLaunchMissionStage = useCallback((missionId: MissionId, stageNumber: number) => {
+    const missionEntry = MISSIONS_BY_ID[missionId];
+    if (!missionEntry || missionEntry.status !== 'playable') return;
+
     // If mobile browser, attempt to enter fullscreen on user click/tap
     if (isFullscreenSupported && !isFullscreen && !isStandalone && typeof window !== 'undefined' && window.innerWidth < 768) {
       enterFullscreen();
     }
-    setCurrentFloor(1);
+
+    setActiveMissionId(missionId);
+    setCurrentFloor(stageNumber);
     setScore(0);
     setFireSpreadSpeed(1.0);
     setFireSpreadIncreased(false);
+    setNewlyUnlockedMedals([]);
+    setHudState({ ...INITIAL_HUD_STATE, missionId, currentFloor: stageNumber });
     setGameState('briefing');
   }, [isFullscreenSupported, isFullscreen, isStandalone, enterFullscreen]);
 
@@ -112,6 +155,7 @@ export default function App() {
   }, []);
 
   const handleHudUpdate = useCallback((hud: GameHUDState) => {
+    hudStateRef.current = hud;
     setHudState(hud);
     setScore(hud.score);
   }, []);
@@ -119,24 +163,42 @@ export default function App() {
   const handleFloorClear = useCallback((clearedScore: number, stars: number, remainingHealth: number, maxHealth: number) => {
     setScore(clearedScore);
     setFloorStars(stars);
+
     const { nextSpeed, increased } = calculateNextFireSpreadSpeed(fireSpreadSpeed, remainingHealth, maxHealth);
     setFireSpreadSpeed(nextSpeed);
     setFireSpreadIncreased(increased);
-    if (currentFloor >= 10) {
+
+    const latestHud = hudStateRef.current;
+    setHubSave(prev => {
+      const { nextSave, newlyUnlockedMedals: unlocked } = recordStageClear(prev, {
+        missionId: activeMissionId,
+        stageNumber: currentFloor,
+        score: clearedScore,
+        stars,
+        civiliansSaved: latestHud.rescuedCivilians,
+        petsSaved: latestHud.rescuedPets,
+        firesExtinguished: latestHud.extinguishedFires,
+      });
+      setNewlyUnlockedMedals(unlocked);
+      return nextSave;
+    });
+
+    if (currentFloor >= activeMission.totalStages) {
       setGameState('grand_victory');
     } else {
       setGameState('floor_clear');
     }
-  }, [currentFloor, fireSpreadSpeed]);
+  }, [activeMission.totalStages, activeMissionId, currentFloor, fireSpreadSpeed]);
 
   const handleNextFloor = useCallback(() => {
-    if (currentFloor < 10) {
+    if (currentFloor < activeMission.totalStages) {
       setCurrentFloor(prev => prev + 1);
+      setNewlyUnlockedMedals([]);
       setGameState('briefing');
     } else {
       setGameState('grand_victory');
     }
-  }, [currentFloor]);
+  }, [activeMission.totalStages, currentFloor]);
 
   const handleGameOver = useCallback((reason: string) => {
     setGameOverReason(reason);
@@ -149,13 +211,16 @@ export default function App() {
   }, []);
 
   const handleReturnHome = useCallback(() => {
+    setNewlyUnlockedMedals([]);
     setGameState('title');
   }, []);
 
   const currentFloorData = FLOORS_DATA.find(f => f.floorNumber === currentFloor) || FLOORS_DATA[0];
+  const currentForestSector = FOREST_SECTORS.find(s => s.sectorNumber === currentFloor) || FOREST_SECTORS[0];
+  const activeTools = activeMissionId === 'forest_fire' ? FOREST_TOOLS : undefined;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 w-full overflow-hidden bg-slate-950 font-sans select-none"
       style={{ height: 'var(--app-height, 100dvh)', width: 'var(--app-width, 100vw)' }}
     >
@@ -167,13 +232,14 @@ export default function App() {
         <InstructionsModal onClose={() => setShowInstructions(false)} />
       )}
 
-      {/* 1. Title Screen */}
+      {/* 1. CBMMG Operations Hub (Title Screen) */}
       {gameState === 'title' && (
         <TitleScreen
-          selectedCharacter={selectedCharacter}
-          onSelectCharacter={setSelectedCharacter}
-          onStartGame={handleStartFromTitle}
+          saveState={hubSave}
+          onSelectCharacter={handleSelectCharacter}
+          onLaunchMissionStage={handleLaunchMissionStage}
           onOpenInstructions={() => setShowInstructions(true)}
+          onResetProgress={handleResetProgress}
           isMuted={isMuted}
           onToggleMute={handleToggleMute}
           isFullscreen={isFullscreen}
@@ -188,6 +254,7 @@ export default function App() {
           {/* Isolated Canvas Container */}
           <PhaserGame
             ref={phaserRef}
+            missionId={activeMissionId}
             characterId={selectedCharacter}
             floorNumber={currentFloor}
             initialScore={score}
@@ -206,6 +273,10 @@ export default function App() {
             isFullscreen={isFullscreen}
             onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
             fireSpreadSpeed={fireSpreadSpeed}
+            stageTerm={activeMission.stageTermSingular.toUpperCase()}
+            totalStages={activeMission.totalStages}
+            tools={activeTools}
+            onSelectTool={(id) => phaserRef.current?.setTool(id)}
           />
 
           {/* Mobile Ergonomic Touch Controls */}
@@ -218,14 +289,23 @@ export default function App() {
               currentFloor={currentFloor}
               extinguisherPercent={hudState.extinguisher}
               extraLift={extraLift}
+              primaryControl={activeMission.primaryControl}
+              tools={activeTools}
+              activeToolId={hudState.activeToolId ?? 'water'}
+              onSelectTool={(id) => phaserRef.current?.setTool(id)}
             />
           )}
 
-          {/* Briefing Modal before entering floor */}
+          {/* Briefing Modal before entering stage */}
           {gameState === 'briefing' && (
             <FloorBriefingModal
               floor={currentFloorData}
+              forestSector={activeMissionId === 'forest_fire' ? currentForestSector : undefined}
+              missionTitle={activeMission.title}
+              stageTerm={activeMission.stageTermSingular.toUpperCase()}
+              totalStages={activeMission.totalStages}
               onStartFloor={handleStartFloor}
+              onBackToHub={handleReturnHome}
             />
           )}
 
@@ -235,6 +315,7 @@ export default function App() {
               floorNumber={currentFloor}
               score={score}
               isMuted={isMuted}
+              missionId={activeMissionId}
               onResume={() => setGameState('playing')}
               onRestartFloor={handleRetryFloor}
               onHome={handleReturnHome}
@@ -252,9 +333,12 @@ export default function App() {
               floorNumber={currentFloor}
               score={score}
               stars={floorStars}
+              missionId={activeMissionId}
               fireSpreadIncreased={fireSpreadIncreased}
               fireSpreadSpeed={fireSpreadSpeed}
+              newlyUnlockedMedals={newlyUnlockedMedals}
               onNextFloor={handleNextFloor}
+              onReturnHub={handleReturnHome}
             />
           )}
 
@@ -264,6 +348,7 @@ export default function App() {
               floorNumber={currentFloor}
               reason={gameOverReason}
               score={score}
+              missionId={activeMissionId}
               onRetry={handleRetryFloor}
               onHome={handleReturnHome}
             />
@@ -271,16 +356,22 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. Grand Rooftop Helicopter Evacuation Victory Modal */}
+      {/* 3. Grand Victory Modal */}
       {gameState === 'grand_victory' && (
         <GrandVictoryModal
           characterId={selectedCharacter}
           totalScore={score}
+          missionId={activeMissionId}
+          newlyUnlockedMedals={newlyUnlockedMedals}
           onPlayAgain={() => {
             setCurrentFloor(1);
             setScore(0);
-            setGameState('title');
+            setFireSpreadSpeed(1.0);
+            setFireSpreadIncreased(false);
+            setNewlyUnlockedMedals([]);
+            setGameState('briefing');
           }}
+          onReturnHub={handleReturnHome}
         />
       )}
     </div>

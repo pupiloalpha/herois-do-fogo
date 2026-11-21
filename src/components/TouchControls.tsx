@@ -1,6 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { sounds } from '../audio/SoundManager';
 import { ContextualActionType } from '../game/types';
+import { PrimaryControlMeta } from '../hub/types';
+
+export interface TouchToolOption {
+  id: string;
+  icon: string;
+  label: string;
+}
 
 interface TouchControlsProps {
   onMove: (vx: number, vy: number) => void;
@@ -10,6 +17,10 @@ interface TouchControlsProps {
   currentFloor?: number;
   extinguisherPercent?: number;
   extraLift?: boolean;
+  primaryControl?: PrimaryControlMeta;
+  tools?: TouchToolOption[];
+  activeToolId?: string;
+  onSelectTool?: (toolId: string) => void;
 }
 
 function getActionMeta(action: ContextualActionType, currentFloor: number) {
@@ -31,6 +42,24 @@ function getActionMeta(action: ContextualActionType, currentFloor: number) {
         icon: '🐱',
         label: 'RESGATAR',
         classes: 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/35 shadow-amber-500/30',
+      };
+    case 'wildlife':
+      return {
+        icon: '🦊',
+        label: 'SALVAR',
+        classes: 'bg-gradient-to-br from-amber-400 to-emerald-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/40 shadow-amber-500/30 animate-pulse',
+      };
+    case 'hiker':
+      return {
+        icon: '🤝',
+        label: 'RESGATAR',
+        classes: 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-200 text-white ring-4 ring-emerald-400/35 shadow-emerald-500/30',
+      };
+    case 'smoldering_log':
+      return {
+        icon: '🪣',
+        label: 'ENTERRAR',
+        classes: 'bg-gradient-to-br from-orange-500 to-amber-600 border-amber-200 text-slate-950 ring-4 ring-orange-400/35 shadow-orange-500/30',
       };
     case 'gas_valve':
       return {
@@ -79,6 +108,10 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   currentFloor = 1,
   extinguisherPercent = 100,
   extraLift = false,
+  primaryControl,
+  tools,
+  activeToolId,
+  onSelectTool,
 }) => {
   const joystickBaseRef = useRef<HTMLDivElement>(null);
   const [joystickPos, setJoystickPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -178,7 +211,9 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   };
 
   const actionMeta = getActionMeta(contextualAction, currentFloor);
-  const isTankEmpty = extinguisherPercent <= 0;
+  const activeTool = tools?.find(t => t.id === activeToolId);
+  const usesWater = !tools || activeToolId === 'water';
+  const isTankEmpty = usesWater && extinguisherPercent <= 0;
 
   return (
     <div
@@ -224,62 +259,105 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
         </div>
       </div>
 
-      {/* Right: 2 Ergonomic Thumb Buttons (Contextual Action + Extinguisher Spray) */}
-      <div className="pointer-events-auto flex items-end gap-3 touch-none">
-        {/* Contextual Action Button */}
-        <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            sounds.playClick();
-            onInteract();
-          }}
-          onClick={() => {
-            sounds.playClick();
-            onInteract();
-          }}
-          className={`w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all ${actionMeta.classes}`}
-          title="Interagir com o objetivo próximo"
-        >
-          <span className="text-xl leading-none">{actionMeta.icon}</span>
-          <span className="text-[9px] font-black tracking-wide uppercase mt-1 leading-none">
-            {actionMeta.label}
-          </span>
-        </button>
+      {/* Right: Optional Tool Bar + 2 Ergonomic Thumb Buttons */}
+      <div className="pointer-events-auto flex flex-col items-end gap-2 touch-none">
+        {tools && tools.length > 0 && onSelectTool && (
+          <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-sm border border-slate-800 rounded-2xl p-1 shadow-xl">
+            {tools.map(tool => {
+              const isSelected = tool.id === activeToolId;
+              return (
+                <button
+                  key={tool.id}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    sounds.playClick();
+                    onSelectTool(tool.id);
+                  }}
+                  onClick={() => {
+                    sounds.playClick();
+                    onSelectTool(tool.id);
+                  }}
+                  className={`min-w-[40px] h-10 px-2 rounded-xl flex flex-col items-center justify-center transition ${
+                    isSelected
+                      ? 'bg-emerald-500/25 border border-emerald-400 text-white'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={tool.label}
+                >
+                  <span className="text-sm leading-none">{tool.icon}</span>
+                  <span className="text-[8px] font-bold uppercase mt-0.5 leading-none">{tool.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-        {/* Primary Extinguisher Spray Button */}
-        <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            startSpraying();
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            stopSpraying();
-          }}
-          onTouchCancel={(e) => {
-            e.preventDefault();
-            stopSpraying();
-          }}
-          onMouseDown={() => {
-            startSpraying();
-          }}
-          onMouseUp={() => {
-            stopSpraying();
-          }}
-          className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-3xl border-2 flex flex-col items-center justify-center shadow-2xl transition-all ${
-            isTankEmpty
-              ? 'bg-red-950/90 border-red-400 text-red-200 active:scale-95'
-              : isSpraying
-                ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 text-white scale-95 ring-4 ring-cyan-400/50'
-                : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
-          }`}
-          title="Extinguir Chamas"
-        >
-          <span className={`text-2xl leading-none ${isSpraying ? 'scale-110' : ''}`}>🧯</span>
-          <span className="text-[9px] font-black tracking-wider uppercase mt-1 leading-none">
-            {isTankEmpty ? 'VAZIO' : isSpraying ? 'JATO' : 'EXTINTOR'}
-          </span>
-        </button>
+        <div className="flex items-end gap-3">
+          {/* Contextual Action Button */}
+          <button
+            onTouchStart={(e) => {
+              e.preventDefault();
+              sounds.playClick();
+              onInteract();
+            }}
+            onClick={() => {
+              sounds.playClick();
+              onInteract();
+            }}
+            className={`w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all ${actionMeta.classes}`}
+            title="Interagir com o objetivo próximo"
+          >
+            <span className="text-xl leading-none">{actionMeta.icon}</span>
+            <span className="text-[9px] font-black tracking-wide uppercase mt-1 leading-none">
+              {actionMeta.label}
+            </span>
+          </button>
+
+          {/* Primary Action Button (Extinguisher / Turbo / Active Tool) */}
+          <button
+            onTouchStart={(e) => {
+              e.preventDefault();
+              startSpraying();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              stopSpraying();
+            }}
+            onTouchCancel={(e) => {
+              e.preventDefault();
+              stopSpraying();
+            }}
+            onMouseDown={() => {
+              startSpraying();
+            }}
+            onMouseUp={() => {
+              stopSpraying();
+            }}
+            className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-3xl border-2 flex flex-col items-center justify-center shadow-2xl transition-all ${
+              isTankEmpty
+                ? 'bg-red-950/90 border-red-400 text-red-200 active:scale-95'
+                : isSpraying
+                  ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 text-white scale-95 ring-4 ring-cyan-400/50'
+                  : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
+            }`}
+            title={activeTool?.label ?? primaryControl?.label ?? 'Extinguir Chamas'}
+          >
+            <span className={`text-2xl leading-none ${isSpraying ? 'scale-110' : ''}`}>
+              {activeTool
+                ? activeTool.icon
+                : isSpraying && primaryControl?.activeIcon
+                  ? primaryControl.activeIcon
+                  : primaryControl?.icon ?? '🧯'}
+            </span>
+            <span className="text-[9px] font-black tracking-wider uppercase mt-1 leading-none">
+              {isTankEmpty
+                ? primaryControl?.emptyLabel ?? 'VAZIO'
+                : isSpraying
+                  ? primaryControl?.activeLabel ?? 'JATO'
+                  : activeTool?.label ?? primaryControl?.label ?? 'EXTINTOR'}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

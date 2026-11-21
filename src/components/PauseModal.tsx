@@ -2,10 +2,13 @@ import React from 'react';
 import { Play, RotateCcw, Home, Volume2, VolumeX, Maximize, Minimize, ArrowUpDown } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
+import { MissionId } from '../hub/types';
+
 interface PauseModalProps {
   floorNumber: number;
   score: number;
   isMuted: boolean;
+  missionId?: MissionId;
   onResume: () => void;
   onRestartFloor: () => void;
   onHome: () => void;
@@ -20,6 +23,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   floorNumber,
   score,
   isMuted,
+  missionId = 'vertical_10',
   onResume,
   onRestartFloor,
   onHome,
@@ -29,6 +33,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   extraLift = false,
   onToggleExtraLift,
 }) => {
+  const isForest = missionId === 'forest_fire';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
       <div className="w-full max-w-sm max-h-[92dvh] overflow-y-auto overscroll-contain rounded-3xl border border-slate-700 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-center text-white">
@@ -36,7 +42,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           JOGO PAUSADO
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          {floorNumber}º ANDAR
+          {isForest ? `SETOR ${floorNumber}` : `${floorNumber}º ANDAR`}
         </h2>
         <p className="text-xs text-slate-400 mt-1">
           Pontuação: <strong className="text-amber-400 font-mono tabular-nums">{score.toLocaleString('pt-BR')} PTS</strong>
@@ -62,7 +68,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             className="w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>REINICIAR ANDAR</span>
+            <span>{isForest ? 'REINICIAR SETOR' : 'REINICIAR ANDAR'}</span>
           </button>
 
           <button
@@ -110,7 +116,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             className="w-full min-h-[44px] py-2.5 rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
           >
             <Home className="w-4 h-4" />
-            <span>MENU INICIAL</span>
+            <span>VOLTAR AO HUB</span>
           </button>
         </div>
       </div>

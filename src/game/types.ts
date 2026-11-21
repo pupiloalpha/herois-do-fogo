@@ -77,6 +77,9 @@ export type ContextualActionType =
   | 'civilian'
   | 'pet_dog'
   | 'pet_cat'
+  | 'wildlife'
+  | 'hiker'
+  | 'smoldering_log'
   | 'gas_valve'
   | 'electric_panel'
   | 'refill_station'
@@ -84,8 +87,29 @@ export type ContextualActionType =
   | 'exit_locked'
   | null;
 
+export interface HUDObjectiveItem {
+  id: string;
+  icon: string;
+  label: string;
+  current: number;
+  target: number;
+  pendingTextClass?: string;
+}
+
+export interface HUDVitalsLabels {
+  healthLabel?: string;
+  resourceLabel?: string;
+  resourceEmoji?: string;
+  hazardLabel?: string;
+  hazardAlertText?: string;
+  emptyResourceAlertText?: string;
+  refillTipText?: string;
+}
+
 export interface GameHUDState {
+  missionId?: string;
   currentFloor: number;
+  stageLabel?: string;
   health: number;
   maxHealth: number;
   extinguisher: number;
@@ -109,4 +133,9 @@ export interface GameHUDState {
   contextualAction?: ContextualActionType;
   smokeAlert?: boolean;
   refillNeeded?: boolean;
+  objectives?: HUDObjectiveItem[];
+  vitalsLabels?: HUDVitalsLabels;
+  windLabel?: string;
+  preservedPercent?: number;
+  activeToolId?: string;
 }

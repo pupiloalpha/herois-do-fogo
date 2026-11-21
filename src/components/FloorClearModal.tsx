@@ -1,25 +1,34 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Star, ArrowRight, ShieldCheck, Flame } from 'lucide-react';
+import { Trophy, Star, ArrowRight, ShieldCheck, Flame, Home, Award } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
+import { MedalDefinition, MissionId } from '../hub/types';
 
 interface FloorClearModalProps {
   floorNumber: number;
   score: number;
   stars: number;
+  missionId?: MissionId;
   fireSpreadIncreased?: boolean;
   fireSpreadSpeed?: number;
+  newlyUnlockedMedals?: MedalDefinition[];
   onNextFloor: () => void;
+  onReturnHub?: () => void;
 }
 
 export const FloorClearModal: React.FC<FloorClearModalProps> = ({
   floorNumber,
   score,
   stars,
+  missionId = 'vertical_10',
   fireSpreadIncreased = false,
   fireSpreadSpeed = 1.0,
+  newlyUnlockedMedals = [],
   onNextFloor,
+  onReturnHub,
 }) => {
+  const isForest = missionId === 'forest_fire';
+
   useEffect(() => {
     confetti({
       particleCount: 80,
@@ -48,10 +57,12 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
           MISSÃO CUMPRIDA!
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          {floorNumber}º ANDAR LIBERADO!
+          {isForest ? `SETOR ${floorNumber} CONTROLADO!` : `${floorNumber}º ANDAR LIBERADO!`}
         </h2>
         <p className="text-xs text-slate-300 mt-1 max-w-xs mx-auto">
-          Todos os focos foram extintos, vítimas salvas e riscos neutralizados com sucesso!
+          {isForest
+            ? 'Todas as frentes de fogo e brasas foram contidas e a fauna silvestre está a salvo!'
+            : 'Todos os focos foram extintos, vítimas salvas e riscos neutralizados com sucesso!'}
         </p>
 
         {/* Stars */}
@@ -85,22 +96,56 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
           <div className="mb-4 rounded-2xl bg-orange-950/60 border border-orange-500/40 px-3 py-2 text-xs text-orange-200 flex items-center justify-center gap-2">
             <Flame className="w-4 h-4 text-orange-400 shrink-0" />
             <span>
-              <strong>Desafio Extra (+50% Vida):</strong> Chamas {Math.round(fireSpreadSpeed * 100)}% mais rápidas no próximo andar.
+              <strong>Desafio Extra (+50% Vida):</strong>{' '}
+              {isForest
+                ? `Propagação ${Math.round(fireSpreadSpeed * 100)}% mais rápida no próximo setor.`
+                : `Chamas ${Math.round(fireSpreadSpeed * 100)}% mais rápidas no próximo andar.`}
             </span>
           </div>
         )}
 
+        {newlyUnlockedMedals.length > 0 && (
+          <div className="mb-4 rounded-2xl bg-amber-950/50 border border-amber-500/40 px-3 py-2.5 text-left space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+              <Award className="w-3.5 h-3.5 shrink-0" />
+              <span>Medalha Conquistada!</span>
+            </div>
+            {newlyUnlockedMedals.map((medal) => (
+              <div key={medal.id} className="flex items-center gap-2 text-xs text-slate-200">
+                <span className="text-base shrink-0">{medal.icon}</span>
+                <span className="font-bold text-white">{medal.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* CTA */}
-        <button
-          onClick={() => {
-            sounds.playClick();
-            onNextFloor();
-          }}
-          className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-slate-950 font-black text-sm sm:text-base shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <span>SUBIR PARA O {floorNumber + 1}º ANDAR</span>
-          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              sounds.playClick();
+              onNextFloor();
+            }}
+            className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-slate-950 font-black text-sm sm:text-base shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span>{isForest ? `AVANÇAR PARA O ${floorNumber + 1}º SETOR` : `SUBIR PARA O ${floorNumber + 1}º ANDAR`}</span>
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+
+          {onReturnHub && (
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                onReturnHub();
+              }}
+              className="w-full py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>VOLTAR AO HUB DE OPERAÇÕES</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

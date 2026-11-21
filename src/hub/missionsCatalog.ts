@@ -1,0 +1,200 @@
+import { CareerRank, MedalDefinition, MissionCatalogEntry, MissionId } from './types';
+
+export const MISSIONS_CATALOG: MissionCatalogEntry[] = [
+  {
+    id: 'vertical_10',
+    title: 'Resgate nos 10 Andares',
+    subtitle: 'Combate a Incêndio Predial',
+    badgeEmoji: '🏢',
+    status: 'playable',
+    totalStages: 10,
+    stageTermSingular: 'Andar',
+    stageTermPlural: 'Andares',
+    accent: 'orange',
+    shortDescription:
+      'Suba 10 andares em chamas, apague focos, feche válvulas de gás, desligue quadros elétricos e evacue civis e animais até o heliponto.',
+    mechanicsHighlight: [
+      'Extintor com recarga em hidrantes',
+      'Fumaça tóxica e dispersão por jato',
+      'Válvulas de gás GLP e quadros elétricos',
+      'Desafio progressivo de propagação (>50% vida)',
+    ],
+    characterPerks: {
+      foguinho: '135 HP, -45% dano térmico e tanque de 125% no extintor.',
+      faisca: 'Velocidade +31% (255) e resgate 60% mais rápido de civis e animais.',
+    },
+    primaryControl: {
+      icon: '🧯',
+      activeIcon: '💧',
+      label: 'EXTINTOR',
+      activeLabel: 'JATO',
+      emptyLabel: 'VAZIO',
+    },
+    plannedSectorsPreview: [
+      '1º Andar · Recepção',
+      '2º Andar · Escritório',
+      '3º Andar · Cozinha Industrial',
+      '4º Andar · Datacenter',
+      '5º Andar · Residencial',
+      '6º Andar · Obras e Reforma',
+      '7º Andar · Biblioteca',
+      '8º Andar · Centro Médico',
+      '9º Andar · Cobertura Duplex',
+      '10º Andar · Heliponto',
+    ],
+  },
+  {
+    id: 'flood_rescue',
+    title: 'Operação Enchentes',
+    subtitle: 'Resgate Aquático e Aéreo',
+    badgeEmoji: '🚤',
+    status: 'coming_soon',
+    totalStages: 10,
+    stageTermSingular: 'Setor',
+    stageTermPlural: 'Setores',
+    accent: 'cyan',
+    shortDescription:
+      'Navegue de bote inflável e helicóptero por uma cidade alagada para resgatar famílias ilhadas em carros, telhados, casas e ilhas.',
+    mechanicsHighlight: [
+      'Pilote Bote CBMMG e Helicóptero Arcanjo com guincho',
+      'Correnteza dinâmica, postes energizados e carros afundando',
+      'Capacidade limitada a bordo com desembarque no abrigo',
+      'Desafio "Cabeça d\'Água" ao superar setores com folga',
+    ],
+    characterPerks: {
+      foguinho: 'Casco e fuselagem reforçados contra detritos, postes e rajadas.',
+      faisca: 'Manobra ágil na correnteza e içamento rápido no guincho.',
+    },
+    primaryControl: {
+      icon: '🚤',
+      activeIcon: '💨',
+      label: 'TURBO',
+      activeLabel: 'IMPULSO',
+      emptyLabel: 'EXAUSTO',
+    },
+    plannedSectorsPreview: [
+      'Setor 1 · Avenida Submersa (Bote)',
+      'Setor 2 · Viaduto Alagado (Carros)',
+      'Setor 3 · Bairro Ribeirinho (Casas)',
+      'Setor 4 · Enchente Noturna (Helicóptero)',
+      'Setor 5 · Telhados da Vila (Guincho)',
+      'Setor 6 · Ilhas do Córrego (Vento Lateral)',
+      'Setor 7 · Área Industrial (Operação Mista)',
+      'Setor 8 · Escola Isolada (Comboio)',
+      'Setor 9 · Barragem Transbordando',
+      'Setor 10 · Grande Evacuação da Cidade',
+    ],
+  },
+  {
+    id: 'forest_fire',
+    title: 'Incêndio Florestal',
+    subtitle: 'Defesa do Parque Estadual',
+    badgeEmoji: '🌲',
+    status: 'playable',
+    totalStages: 10,
+    stageTermSingular: 'Setor',
+    stageTermPlural: 'Setores',
+    accent: 'emerald',
+    shortDescription:
+      'Contenha queimadas no parque estadual abrindo aceiros, usando abafadores, bomba costal, enterrando troncos em brasa e salvando animais silvestres.',
+    mechanicsHighlight: [
+      '4 ferramentas: Enxada (aceiro), Abafador, Água e Pá',
+      'Resgate de animais silvestres (lobo-guará, tucano, tatu, tamanduá)',
+      'Vento direcional e troncos em brasa que reacendem',
+      'Recarga em riachos e tanques de água do parque',
+    ],
+    characterPerks: {
+      foguinho: '135 HP, -45% dano térmico e bomba costal ampliada (125%).',
+      faisca: 'Velocidade +31%, abertura ágil e resgate rápido de fauna.',
+    },
+    primaryControl: {
+      icon: '💧',
+      activeIcon: '💦',
+      label: 'USAR',
+      activeLabel: 'ATIVO',
+      emptyLabel: 'SEM ÁGUA',
+    },
+    plannedSectorsPreview: [
+      'Setor 1 · Clareira da Portaria',
+      'Setor 2 · Trilha das Nascentes',
+      'Setor 3 · Campo Seco (Abafadores)',
+      'Setor 4 · Bosque dos Ipês (Aceiros)',
+      'Setor 5 · Vale do Vento Forte',
+      'Setor 6 · Troncos Centenários (Brasas)',
+      'Setor 7 · Mirante dos Trilheiros',
+      'Setor 8 · Corredor da Fauna',
+      'Setor 9 · Serra Alta',
+      'Setor 10 · Linha de Contenção Total',
+    ],
+  },
+];
+
+export const MISSIONS_BY_ID: Record<MissionId, MissionCatalogEntry> = {
+  vertical_10: MISSIONS_CATALOG[0],
+  flood_rescue: MISSIONS_CATALOG[1],
+  forest_fire: MISSIONS_CATALOG[2],
+};
+
+export const CAREER_RANKS: CareerRank[] = [
+  { id: 'soldado', title: 'Soldado Combatente', minStars: 0, insignia: '🔰' },
+  { id: 'cabo', title: 'Cabo de Resgate', minStars: 6, insignia: '🪖' },
+  { id: 'sargento', title: 'Sargento Operacional', minStars: 15, insignia: '🎖️' },
+  { id: 'tenente', title: 'Tenente Tático', minStars: 24, insignia: '⭐' },
+  { id: 'capitao', title: 'Capitão de Salvamento', minStars: 35, insignia: '🌟' },
+  { id: 'comandante', title: 'Comandante CBMMG', minStars: 50, insignia: '🏅' },
+];
+
+export const HUB_MEDALS: MedalDefinition[] = [
+  {
+    id: 'first_floor_clear',
+    title: 'Batismo de Fogo',
+    description: 'Concluiu sua primeira fase com sucesso no Hub CBMMG.',
+    icon: '🔥',
+    missionId: 'vertical_10',
+  },
+  {
+    id: 'perfection_three_stars',
+    title: 'Precisão Máxima',
+    description: 'Alcançou 3 estrelas em qualquer fase ou andar.',
+    icon: '⭐',
+  },
+  {
+    id: 'lifesaver_10',
+    title: 'Anjo da Guarda',
+    description: 'Resgatou 10 pessoas em operações do CBMMG.',
+    icon: '🤝',
+  },
+  {
+    id: 'pet_protector_5',
+    title: 'Protetor Animal',
+    description: 'Resgatou 5 animais de estimação ou silvestres em perigo.',
+    icon: '🐾',
+  },
+  {
+    id: 'fire_suppressor_25',
+    title: 'Mestre do Jato',
+    description: 'Extinguiu 25 focos de incêndio acumulados.',
+    icon: '🧯',
+  },
+  {
+    id: 'vertical_10_hero',
+    title: 'Herói dos 10 Andares',
+    description: 'Completou todos os 10 andares até o resgate de helicóptero.',
+    icon: '🚁',
+    missionId: 'vertical_10',
+  },
+  {
+    id: 'wildlife_guardian',
+    title: 'Guardião da Fauna',
+    description: 'Resgatou 10 animais (domésticos ou silvestres) em operações.',
+    icon: '🦊',
+    missionId: 'forest_fire',
+  },
+  {
+    id: 'forest_park_hero',
+    title: 'Protetor da Serra',
+    description: 'Concluiu todos os 10 setores da missão Incêndio Florestal.',
+    icon: '🌲',
+    missionId: 'forest_fire',
+  },
+];

@@ -2,10 +2,13 @@ import React from 'react';
 import { AlertOctagon, RotateCcw, Home } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
+import { MissionId } from '../hub/types';
+
 interface GameOverModalProps {
   floorNumber: number;
   reason: string;
   score: number;
+  missionId?: MissionId;
   onRetry: () => void;
   onHome: () => void;
 }
@@ -14,9 +17,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   floorNumber,
   reason,
   score,
+  missionId = 'vertical_10',
   onRetry,
   onHome,
 }) => {
+  const isForest = missionId === 'forest_fire';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
       <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto overscroll-contain rounded-3xl border-2 border-red-500/60 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-center text-white relative">
@@ -28,7 +34,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           ALERTA DE RETIRADA
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          BOMBEIRO FORA DE COMBATE!
+          {isForest ? 'FRENTE DE FOGO NÃO CONTIDA!' : 'BOMBEIRO FORA DE COMBATE!'}
         </h2>
         <p className="text-xs sm:text-sm text-red-200 mt-2 bg-red-950/60 border border-red-800/60 p-3 rounded-xl font-medium">
           {reason}
@@ -52,7 +58,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="w-full py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>TENTAR O {floorNumber}º ANDAR NOVAMENTE</span>
+            <span>{isForest ? `TENTAR O SETOR ${floorNumber} NOVAMENTE` : `TENTAR O ${floorNumber}º ANDAR NOVAMENTE`}</span>
           </button>
 
           <button
@@ -63,7 +69,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="w-full py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-2 border border-slate-700"
           >
             <Home className="w-4 h-4" />
-            <span>VOLTAR AO MENU INICIAL</span>
+            <span>VOLTAR AO HUB</span>
           </button>
         </div>
       </div>

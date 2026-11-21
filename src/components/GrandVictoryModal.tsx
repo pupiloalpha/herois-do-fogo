@@ -1,22 +1,30 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Award, Heart, CheckCircle, RotateCcw } from 'lucide-react';
+import { Trophy, Award, CheckCircle, RotateCcw, Home } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 import { CharacterId } from '../game/types';
 import { CHARACTERS } from '../game/charactersData';
+import { MedalDefinition, MissionId } from '../hub/types';
 
 interface GrandVictoryModalProps {
   characterId: CharacterId;
   totalScore: number;
+  missionId?: MissionId;
+  newlyUnlockedMedals?: MedalDefinition[];
   onPlayAgain: () => void;
+  onReturnHub?: () => void;
 }
 
 export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
   characterId,
   totalScore,
+  missionId = 'vertical_10',
+  newlyUnlockedMedals = [],
   onPlayAgain,
+  onReturnHub,
 }) => {
   const hero = CHARACTERS[characterId];
+  const isForest = missionId === 'forest_fire';
 
   useEffect(() => {
     // Multi-stage confetti celebration
@@ -60,13 +68,15 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
         </div>
 
         <span className="text-xs font-black uppercase tracking-widest text-amber-400 block mt-2">
-          OPERAÇÃO 10 ANDARES CONCLUÍDA!
+          {isForest ? 'OPERAÇÃO INCÊNDIO FLORESTAL CONCLUÍDA!' : 'OPERAÇÃO 10 ANDARES CONCLUÍDA!'}
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-white mt-1">
-          VITÓRIA TOTAL & RESGATE AÉREO!
+          {isForest ? 'PARQUE ESTADUAL SALVO!' : 'VITÓRIA TOTAL & RESGATE AÉREO!'}
         </h1>
         <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
-          O helicóptero decolou com segurança levando todas as vítimas e animais salvos! O incêndio foi completamente controlado graças à sua bravura com <strong>{hero.name}</strong>!
+          {isForest
+            ? <>Todas as frentes de incêndio e brasas foram contidas nos 10 setores e os animais silvestres foram protegidos graças à sua bravura com <strong>{hero.name}</strong>!</>
+            : <>O helicóptero decolou com segurança levando todas as vítimas e animais salvos! O incêndio foi completamente controlado graças à sua bravura com <strong>{hero.name}</strong>!</>}
         </p>
 
         {/* Medalha Card */}
@@ -75,10 +85,19 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
             <Award className="w-8 h-8 text-amber-400 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-amber-300">Medalha de Honra e Bravura CBMMG</h3>
+            <h3 className="text-sm font-bold text-amber-300">
+              {isForest ? 'Medalha Guardião da Serra CBMMG' : 'Medalha de Honra e Bravura CBMMG'}
+            </h3>
             <p className="text-xs text-slate-400">
-              Concedida pelo Corpo de Bombeiros Militar por salvar vidas humanas, animais e proteger o patrimônio coletivo.
+              {isForest
+                ? 'Concedida pelo Corpo de Bombeiros Militar pela preservação ambiental e resgate da fauna silvestre.'
+                : 'Concedida pelo Corpo de Bombeiros Militar por salvar vidas humanas, animais e proteger o patrimônio coletivo.'}
             </p>
+            {newlyUnlockedMedals.length > 0 && (
+              <p className="text-xs text-emerald-300 font-semibold mt-1">
+                +{newlyUnlockedMedals.length} medalha(s) adicionada(s) ao Hub!
+              </p>
+            )}
           </div>
         </div>
 
@@ -96,26 +115,42 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
 
           <div className="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              STATUS DO EDIFÍCIO
+              {isForest ? 'STATUS DO PARQUE' : 'STATUS DO EDIFÍCIO'}
             </span>
             <div className="flex items-center justify-center gap-1.5 text-base sm:text-lg font-black text-emerald-400 mt-1">
               <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span>100% SALVO!</span>
+              <span>{isForest ? 'FAUNA SALVA!' : '100% SALVO!'}</span>
             </div>
           </div>
         </div>
 
-        {/* Play Again */}
-        <button
-          onClick={() => {
-            sounds.playClick();
-            onPlayAgain();
-          }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 font-black text-base shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <RotateCcw className="w-5 h-5" />
-          <span>JOGAR NOVAMENTE COM OUTRO BOMBEIRO</span>
-        </button>
+        {/* Actions */}
+        <div className="space-y-2.5">
+          {onReturnHub && (
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                onReturnHub();
+              }}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 font-black text-base shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <Home className="w-5 h-5" />
+              <span>VOLTAR AO HUB DE OPERAÇÕES</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              onPlayAgain();
+            }}
+            className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>{isForest ? 'JOGAR NOVAMENTE DO 1º SETOR' : 'JOGAR NOVAMENTE DO 1º ANDAR'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
