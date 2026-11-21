@@ -16,12 +16,12 @@ import {
   Play,
   Maximize,
   Minimize,
-  Info,
   Star,
   ListChecks,
-  Award,
-  Clock,
+  Check,
   ChevronRight,
+  Flame,
+  Sparkles,
 } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 import { FullscreenGuideModal } from './FullscreenGuideModal';
@@ -64,54 +64,68 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   const careerRank = getCareerRank(totalStars.earned);
 
   return (
-    <div className="relative w-full h-full min-h-[100dvh] bg-slate-950 text-white flex flex-col justify-between overflow-y-auto overscroll-contain p-3 sm:p-6 md:p-8 pb-10 select-none">
-      {/* Background backdrop */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-20 filter blur-[2px] scale-105 pointer-events-none"
-        style={{ backgroundImage: `url('/banner.jpg')` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-950/90 pointer-events-none" />
+    <div className="relative w-full h-full min-h-[100dvh] bg-gradient-to-b from-sky-950 via-slate-900 to-slate-950 text-white flex flex-col justify-between overflow-y-auto overscroll-contain select-none">
+      {/* 1. VIBRANT, CHEERFUL BANNER BACKGROUND (Bright, Full Color) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center filter brightness-100 contrast-105 opacity-90 sm:opacity-95"
+          style={{ backgroundImage: `url('/banner.jpg')` }}
+        />
+        {/* Warm daylight & solar glow (no gloomy black curtain) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-amber-950/20 to-slate-950/40" />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            background: 'radial-gradient(circle at 50% 15%, rgba(251, 191, 36, 0.45) 0%, transparent 65%)',
+          }}
+        />
+      </div>
 
-      {/* Top Bar: CBMMG Hub Header & Utilities */}
-      <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto shrink-0 gap-3 mb-4">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <img
-            src="/assets/aistudio/LogoCorpoDeBombeiros_57dfdd49.png"
-            alt="Brasão CBMMG"
-            className="w-10 h-10 sm:w-11 sm:h-11 drop-shadow-md rounded-full object-contain shrink-0"
-          />
-          <div className="min-w-0">
-            <span className="text-xs sm:text-sm font-bold tracking-wide text-amber-400 block leading-tight truncate">
-              CBMMG · Central de Operações
+      {/* 2. CHEERFUL TOP BAR HUD */}
+      <header className="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-6 pt-3 sm:pt-4 pb-1 flex items-center justify-between gap-2 shrink-0">
+        {/* CBMMG Official Seal with Bright Golden Glow */}
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="relative shrink-0">
+            <img
+              src="/assets/aistudio/LogoCorpoDeBombeiros_57dfdd49.png"
+              alt="Brasão CBMMG"
+              className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] rounded-full object-contain"
+            />
+          </div>
+          <div className="min-w-0 leading-tight">
+            <span className="text-[11px] sm:text-xs font-black tracking-wider text-amber-300 uppercase block drop-shadow">
+              CBMMG · Minas Gerais
             </span>
-            <span className="text-[11px] text-slate-400 font-medium hidden sm:block truncate">
-              Corpo de Bombeiros Militar de Minas Gerais
+            <span className="text-xs sm:text-sm font-black text-white tracking-wide block truncate drop-shadow-md">
+              Heróis do Fogo
             </span>
           </div>
         </div>
 
+        {/* Playful & Joyful Header Buttons */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Career & Rank Trigger */}
+          {/* Trophy & Stars Pill Button */}
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               setShowCareer(true);
             }}
-            className="min-h-[44px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/35 text-xs font-semibold text-slate-100 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap"
-            title="Carreira, Patente e Medalhas"
+            className="h-10 px-3 rounded-2xl bg-gradient-to-r from-amber-500/90 via-amber-400 to-yellow-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-[0_4px_12px_rgba(245,158,11,0.5)] border-2 border-amber-300 hover:brightness-110 active:scale-95 transition-all whitespace-nowrap cursor-pointer"
+            title="Conquistas, Patente e Medalhas"
           >
-            <span>{careerRank.current.insignia}</span>
-            <span className="hidden md:inline text-slate-200">{careerRank.current.title}</span>
-            <span className="text-slate-600 hidden md:inline" aria-hidden="true">·</span>
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-            <span className="font-mono tabular-nums text-amber-300 font-bold">
+            <span className="text-base">{careerRank.current.insignia}</span>
+            <span className="hidden md:inline font-black uppercase text-[11px]">{careerRank.current.title}</span>
+            <span className="flex items-center gap-0.5 bg-slate-950/20 px-1.5 py-0.5 rounded-lg font-mono font-black text-slate-950">
+              <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
               {totalStars.earned}/{totalStars.max}
             </span>
           </button>
 
+          {/* PWA Install Button */}
           <PWAInstallButton />
 
+          {/* Fullscreen Button */}
           {onToggleFullscreen && (
             <button
               type="button"
@@ -119,58 +133,59 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                 sounds.playClick();
                 onToggleFullscreen();
               }}
-              className="min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-amber-400 hover:text-white transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap"
+              className="w-10 h-10 rounded-2xl bg-amber-500/20 hover:bg-amber-500/35 border-2 border-amber-400/60 text-amber-300 hover:text-white transition shadow-md active:scale-95 flex items-center justify-center shrink-0 cursor-pointer backdrop-blur-sm"
               title={isFullscreen ? 'Sair da Tela Cheia' : 'Jogar em Tela Cheia'}
+              aria-label="Tela Cheia"
             >
               {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-              <span className="hidden lg:inline text-xs font-bold">
-                {isFullscreen ? 'Janela' : 'Tela Cheia'}
-              </span>
             </button>
           )}
 
+          {/* Help Button */}
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               onOpenInstructions();
             }}
-            className="min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95 flex items-center justify-center"
+            className="w-10 h-10 rounded-2xl bg-amber-500/20 hover:bg-amber-500/35 border-2 border-amber-400/60 text-amber-300 hover:text-white transition shadow-md active:scale-95 flex items-center justify-center shrink-0 cursor-pointer backdrop-blur-sm"
             title="Como Jogar"
             aria-label="Como jogar"
           >
-            <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+            <HelpCircle className="w-5 h-5 text-amber-300" />
           </button>
 
+          {/* Audio Button */}
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               onToggleMute();
             }}
-            className="min-w-[44px] min-h-[44px] sm:min-w-[40px] sm:min-h-[40px] p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition shadow-sm active:scale-95 flex items-center justify-center"
-            title={isMuted ? 'Ativar Som' : 'Silenciar'}
-            aria-label={isMuted ? 'Ativar Som' : 'Silenciar'}
+            className={`w-10 h-10 rounded-2xl border-2 transition shadow-md active:scale-95 flex items-center justify-center shrink-0 cursor-pointer backdrop-blur-sm ${
+              isMuted
+                ? 'bg-rose-500/25 border-rose-400 text-rose-300'
+                : 'bg-emerald-500/25 border-emerald-400 text-emerald-300'
+            }`}
+            title={isMuted ? 'Ligar Som' : 'Silenciar'}
+            aria-label={isMuted ? 'Ligar Som' : 'Silenciar'}
           >
             {isMuted ? (
-              <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+              <VolumeX className="w-4 h-4" />
             ) : (
-              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+              <Volume2 className="w-4 h-4" />
             )}
           </button>
         </div>
       </header>
 
-      {/* Browser Bar Avoidance Tip Banner (only in normal browser mode) */}
+      {/* Discrete Browser Tip (Mobile/Tablet only) */}
       {!isStandalone && (
-        <div className="relative z-10 w-full max-w-6xl mx-auto mb-4">
-          <div className="bg-slate-900/80 border border-amber-500/35 rounded-2xl px-3.5 py-2.5 shadow-lg flex items-center justify-between gap-2.5 backdrop-blur-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-base shrink-0">📱</span>
-              <p className="text-xs text-slate-300 truncate">
-                <strong className="text-amber-300">Dica de Tela:</strong> As barras do navegador cobrem o jogo?
-              </p>
-            </div>
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-6 mb-1">
+          <div className="bg-amber-500/20 border-2 border-amber-400/50 rounded-2xl px-3 py-1 flex items-center justify-between gap-2 backdrop-blur-md text-xs text-amber-100 shadow-md">
+            <span className="truncate font-semibold">
+              💡 Dica: Toque em <strong>Tela Cheia</strong> para a melhor experiência no celular!
+            </span>
             <div className="flex items-center gap-1.5 shrink-0">
               {onToggleFullscreen && (
                 <button
@@ -179,10 +194,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                     sounds.playClick();
                     onToggleFullscreen();
                   }}
-                  className="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold active:scale-95 transition flex items-center gap-1 whitespace-nowrap"
+                  className="px-2.5 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm hover:brightness-110 active:scale-95"
                 >
-                  <Maximize className="w-3.5 h-3.5" />
-                  <span>Tela Cheia</span>
+                  Tela Cheia
                 </button>
               )}
               <button
@@ -191,61 +205,49 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                   sounds.playClick();
                   setShowGuide(true);
                 }}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold active:scale-95 transition flex items-center gap-1 whitespace-nowrap"
+                className="px-2 py-0.5 rounded-lg bg-slate-900/80 text-amber-200 font-bold text-[11px] hover:bg-slate-800"
               >
-                <Info className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Como Ocultar</span>
+                Guia
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Hub Workspace */}
-      <main className="relative z-10 w-full max-w-6xl mx-auto my-auto space-y-6 py-2">
-        {/* Hub Title & Intro */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800/80 pb-5">
-          <div className="space-y-1.5 max-w-2xl">
-            <p className="text-xs font-semibold text-orange-400 tracking-wide">
-              Academia de Operações · 3 Frentes de Missão
-            </p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-none text-white">
-              <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                HERÓIS DO FOGO
-              </span>
-            </h1>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              Escolha seu bombeiro militar, acompanhe suas estrelas e escolha a operação de salvamento.
-            </p>
+      {/* 3. MAIN GAME ARENA (Joyful, Welcoming & Friendly) */}
+      <main className="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 my-auto flex flex-col gap-4 sm:gap-5">
+        {/* Bright Joyful Title Section */}
+        <section className="text-center space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 text-xs font-black tracking-wider uppercase shadow-[0_2px_10px_rgba(245,158,11,0.5)] border-2 border-yellow-300">
+            <Flame className="w-4 h-4 fill-slate-950 text-slate-950" />
+            <span>Jogo Oficial dos Bombeiros de Minas Gerais</span>
+            <Sparkles className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              setShowCareer(true);
-            }}
-            className="self-start md:self-auto min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-900/85 hover:bg-slate-800 border border-slate-700/80 text-xs sm:text-sm font-semibold text-slate-200 flex items-center gap-2 transition active:scale-95 whitespace-nowrap"
-          >
-            <Award className="w-4 h-4 text-amber-400" />
-            <span>
-              Carreira & Medalhas ({saveState.unlockedMedals.length})
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none uppercase drop-shadow-xl">
+            <span className="bg-gradient-to-b from-yellow-200 via-amber-300 to-orange-500 bg-clip-text text-transparent text-glow-fire">
+              HERÓIS DO FOGO
             </span>
-          </button>
+          </h1>
+
+          <p className="text-amber-100 text-xs sm:text-sm md:text-base font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
+            Apague o fogo, resgate seus amigos e divirta-se salvando vidas!
+          </p>
         </section>
 
-        {/* Global Hero Selector */}
-        <section aria-labelledby="hero-select-heading" className="space-y-2.5">
+        {/* 4. CHEERFUL HERO SELECTOR (Foguinho & Faísca) */}
+        <section aria-labelledby="hero-choice-heading" className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 id="hero-select-heading" className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              1. Escolha o Bombeiro da Equipe
+            <h2 id="hero-choice-heading" className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5 drop-shadow">
+              <span>🚒</span>
+              <span>Escolha Seu Bombeiro Favorito:</span>
             </h2>
-            <span className="text-xs text-slate-400">
-              Ativo: <strong className="text-white">{CHARACTERS[selectedCharacter].name}</strong>
+            <span className="text-[11px] font-black text-amber-300 bg-amber-500/25 px-2.5 py-0.5 rounded-full border border-amber-400/50 backdrop-blur-sm">
+              Heroi Ativo: <strong>{CHARACTERS[selectedCharacter].name}</strong>
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
             {(['foguinho', 'faisca'] as CharacterId[]).map((charId) => {
               const char = CHARACTERS[charId];
               const isSelected = selectedCharacter === charId;
@@ -259,43 +261,50 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                     sounds.playClick();
                     onSelectCharacter(charId);
                   }}
-                  className={`text-left rounded-2xl p-3.5 transition-all border flex items-center gap-3.5 ${
+                  className={`relative p-2.5 sm:p-4 rounded-3xl border-3 text-left transition-all duration-150 flex items-center gap-2.5 sm:gap-4 backdrop-blur-md cursor-pointer ${
                     isSelected
                       ? isFoguinho
-                        ? 'bg-slate-900/95 border-amber-400 ring-2 ring-amber-400/25 shadow-xl'
-                        : 'bg-slate-900/95 border-orange-500 ring-2 ring-orange-500/25 shadow-xl'
-                      : 'bg-slate-900/55 border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100'
+                        ? 'bg-gradient-to-br from-amber-950/85 via-slate-900/90 to-amber-900/60 border-amber-400 ring-4 ring-amber-400/40 box-glow-amber scale-[1.02]'
+                        : 'bg-gradient-to-br from-orange-950/85 via-slate-900/90 to-rose-900/60 border-orange-400 ring-4 ring-orange-400/40 box-glow-orange scale-[1.02]'
+                      : 'bg-slate-900/70 border-slate-700/80 hover:border-amber-400/60 hover:bg-slate-900/85 opacity-85 hover:opacity-100'
                   }`}
                 >
-                  <img
-                    src={char.avatarUrl}
-                    alt={char.name}
-                    className={`w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover shrink-0 border-2 ${
-                      isFoguinho ? 'border-amber-400/60' : 'border-orange-500/60'
-                    }`}
-                  />
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-base sm:text-lg font-black text-white truncate">
-                        {char.name}
-                      </span>
-                      <span
-                        className={`text-[11px] font-bold ${
-                          isSelected
-                            ? isFoguinho
-                              ? 'text-amber-300'
-                              : 'text-orange-400'
-                            : 'text-slate-500'
-                        }`}
-                      >
-                        {isSelected ? 'Selecionado' : 'Selecionar'}
-                      </span>
+                  {/* Selected Tag */}
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-md border border-yellow-200">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                      <span>Escolhido!</span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">
-                      {char.role} · {isFoguinho ? `${char.maxHealth} HP · -45% dano` : `${char.speed} vel · +60% resgate`}
+                  )}
+
+                  {/* Character Avatar with Bright Ring */}
+                  <div className="relative shrink-0">
+                    <img
+                      src={char.avatarUrl}
+                      alt={char.name}
+                      className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl object-cover border-3 shadow-lg ${
+                        isSelected
+                          ? isFoguinho
+                            ? 'border-amber-400 ring-2 ring-amber-300'
+                            : 'border-orange-400 ring-2 ring-orange-300'
+                          : 'border-slate-500'
+                      }`}
+                    />
+                    <span className="absolute -bottom-1 -right-1 text-sm sm:text-base drop-shadow">
+                      {isFoguinho ? '🛡️' : '⚡'}
+                    </span>
+                  </div>
+
+                  {/* Character Info */}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-xl font-black text-white leading-tight drop-shadow">
+                      {char.name}
+                    </h3>
+                    <p className={`text-[11px] sm:text-xs font-black uppercase ${isFoguinho ? 'text-amber-300' : 'text-orange-300'}`}>
+                      {isFoguinho ? '🛡️ O Forte do Fogo' : '⚡ A Veloz do Resgate'}
                     </p>
-                    <p className="text-[11px] text-slate-300 line-clamp-1">
-                      {char.specialTrait}
+                    <p className="text-[10px] sm:text-xs text-amber-100/90 font-medium line-clamp-1 mt-0.5">
+                      {isFoguinho ? 'Super resistente ao calor e chamas' : 'Super rápida para salvar pessoas e pets'}
                     </p>
                   </div>
                 </button>
@@ -304,149 +313,130 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
           </div>
         </section>
 
-        {/* Operations Showcase (3 Missions) */}
-        <section aria-labelledby="missions-heading" className="space-y-3">
+        {/* 5. COLORFUL MISSIONS SHOWCASE (Each world with its joyful theme) */}
+        <section aria-labelledby="missions-heading" className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 id="missions-heading" className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              2. Missões Disponíveis no Hub
+            <h2 id="missions-heading" className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5 drop-shadow">
+              <span>🎯</span>
+              <span>Escolha a Operação:</span>
             </h2>
-            <span className="text-xs text-slate-400 hidden sm:inline">
-              Progresso salvo automaticamente no dispositivo
+            <span className="text-[11px] font-semibold text-amber-200 drop-shadow">
+              Seu progresso fica salvo automaticamente ⭐
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
             {MISSIONS_CATALOG.map((mission) => {
               const summary = getMissionProgressSummary(saveState, mission.id);
               const isPlayable = mission.status === 'playable';
 
-              const borderClass =
-                mission.accent === 'orange'
-                  ? 'border-orange-500/50 bg-slate-900/90'
-                  : mission.accent === 'cyan'
-                    ? 'border-cyan-500/35 bg-slate-900/75'
-                    : 'border-emerald-500/35 bg-slate-900/75';
+              const isVertical = mission.id === 'vertical_10';
+              const isForest = mission.id === 'forest_fire';
 
-              const accentText =
-                mission.accent === 'orange'
-                  ? 'text-orange-400'
-                  : mission.accent === 'cyan'
-                    ? 'text-cyan-400'
-                    : 'text-emerald-400';
-
-              const progressPercent = Math.round(
-                (summary.completedStages / summary.totalStages) * 100
-              );
+              // Joyful, colorful card themes
+              const cardBorder =
+                isVertical
+                  ? 'border-amber-400/80 bg-gradient-to-b from-amber-950/80 via-slate-900/85 to-orange-950/70 hover:border-amber-300 box-glow-amber'
+                  : isForest
+                    ? 'border-emerald-400/80 bg-gradient-to-b from-emerald-950/80 via-slate-900/85 to-teal-950/70 hover:border-emerald-300 box-glow-emerald'
+                    : 'border-sky-400/80 bg-gradient-to-b from-sky-950/80 via-slate-900/85 to-blue-950/70 box-glow-sky';
 
               const primaryCtaLabel =
                 summary.completedStages >= summary.totalStages
                   ? 'Jogar Novamente'
                   : summary.completedStages > 0
-                    ? `Continuar · ${mission.stageTermSingular} ${summary.nextStageToPlay}`
+                    ? `Jogar · ${mission.stageTermSingular} ${summary.nextStageToPlay}`
                     : `Iniciar ${mission.stageTermSingular} 1`;
+
+              const btnChunkyClass = isVertical
+                ? 'btn-chunky-orange text-white'
+                : isForest
+                  ? 'btn-chunky-emerald text-white'
+                  : 'btn-chunky-cyan text-white';
 
               return (
                 <article
                   key={mission.id}
-                  className={`rounded-3xl border p-5 flex flex-col justify-between gap-4 shadow-xl ${borderClass}`}
+                  className={`rounded-3xl border-3 p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-2xl backdrop-blur-md transition-all duration-150 hover:-translate-y-1 ${cardBorder}`}
                 >
-                  <div className="space-y-3">
-                    {/* Mission Kicker & Title */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                          <span className={`font-semibold ${accentText}`}>{mission.subtitle}</span>
-                          <span aria-hidden="true">·</span>
-                          <span>
-                            {isPlayable ? 'Disponível' : 'Em preparação'}
-                          </span>
-                        </div>
-                        <h3 className="text-xl font-black text-white mt-0.5 leading-tight">
-                          {mission.badgeEmoji} {mission.title}
-                        </h3>
-                      </div>
+                  {/* Top info */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className={`text-xs font-black uppercase tracking-wider ${
+                        isVertical ? 'text-amber-300' : isForest ? 'text-emerald-300' : 'text-sky-300'
+                      }`}>
+                        {isVertical ? 'Missão 1 · Combate' : isForest ? 'Missão 2 · Floresta' : 'Missão 3 · Água'}
+                      </span>
+                      {isPlayable ? (
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black shadow-sm">
+                          Disponível
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-sky-500 text-slate-950 font-black shadow-sm">
+                          Em Breve
+                        </span>
+                      )}
                     </div>
 
-                    {/* Description */}
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                      {mission.shortDescription}
+                    <h3 className="text-lg sm:text-xl font-black text-white leading-tight flex items-center gap-1.5 drop-shadow">
+                      <span>{mission.badgeEmoji}</span>
+                      <span className="truncate">{mission.title}</span>
+                    </h3>
+
+                    {/* Cheerful 1-line description */}
+                    <p className="text-xs text-amber-50/90 font-medium leading-snug line-clamp-2">
+                      {isVertical && 'Suba os 10 andares apagando o fogo, feche válvulas de gás e evacue todos!'}
+                      {isForest && 'Contenha queimadas no parque estadual, use bomba costal e salve animais silvestres!'}
+                      {mission.id === 'flood_rescue' && 'Pilote bote e helicóptero com guincho para resgatar pessoas em áreas alagadas!'}
                     </p>
-
-                    {/* Mechanics List */}
-                    <ul className="space-y-1 text-xs text-slate-300 pt-1">
-                      {mission.mechanicsHighlight.slice(0, 3).map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className={`${accentText} font-bold`} aria-hidden="true">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Character Synergy Note */}
-                    <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-400">
-                      <strong className="text-slate-200">{CHARACTERS[selectedCharacter].name}:</strong>{' '}
-                      {mission.characterPerks[selectedCharacter]}
-                    </div>
                   </div>
 
-                  {/* Bottom Progress + Actions */}
-                  <div className="space-y-3 pt-2 border-t border-slate-800/90">
+                  {/* Bottom Actions */}
+                  <div className="space-y-2 pt-2 border-t border-white/10">
                     {isPlayable ? (
                       <>
-                        {/* Progress metrics */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-slate-300 font-medium">
-                              {summary.completedStages}/{summary.totalStages} {mission.stageTermPlural.toLowerCase()}
-                            </span>
-                            <span className="font-mono tabular-nums text-amber-300 font-bold flex items-center gap-1">
-                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                              {summary.earnedStars}/{summary.maxStars}
-                            </span>
-                          </div>
-                          <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                            <div
-                              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
+                        {/* Progress Stars */}
+                        <div className="flex items-center justify-between text-xs font-black text-amber-200">
+                          <span>
+                            {summary.completedStages}/{summary.totalStages} {mission.stageTermPlural.toLowerCase()}
+                          </span>
+                          <span className="flex items-center gap-1 text-yellow-300 font-mono font-black drop-shadow">
+                            <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+                            {summary.earnedStars}/{summary.maxStars}
+                          </span>
                         </div>
 
-                        {/* Play & Stage Select Buttons */}
-                        <div className="space-y-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              sounds.playClick();
-                              onLaunchMissionStage(mission.id, summary.nextStageToPlay);
-                            }}
-                            className="w-full min-h-[48px] px-4 py-3 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 text-slate-950 font-black text-sm shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 whitespace-nowrap"
-                          >
-                            <Play className="w-4 h-4 fill-slate-950 text-slate-950 shrink-0" />
-                            <span>{primaryCtaLabel}</span>
-                          </button>
+                        {/* Chunky 3D Arcade Play Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sounds.playClick();
+                            onLaunchMissionStage(mission.id, summary.nextStageToPlay);
+                          }}
+                          className={`w-full h-12 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer ${btnChunkyClass}`}
+                        >
+                          <Play className="w-5 h-5 fill-white" />
+                          <span>{primaryCtaLabel}</span>
+                        </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              sounds.playClick();
-                              setStageSelectMission(mission);
-                            }}
-                            className="w-full min-h-[44px] px-4 py-2 rounded-2xl bg-slate-950/80 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition active:scale-[0.98] whitespace-nowrap"
-                          >
-                            <ListChecks className="w-4 h-4 text-orange-400 shrink-0" />
-                            <span>Selecionar {mission.stageTermSingular} (1–{mission.totalStages})</span>
-                          </button>
-                        </div>
+                        {/* Stage Selector Link */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sounds.playClick();
+                            setStageSelectMission(mission);
+                          }}
+                          className="w-full h-9 rounded-xl bg-slate-900/80 hover:bg-slate-800 border-2 border-slate-700/80 text-xs font-bold text-amber-200 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        >
+                          <ListChecks className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Escolher {mission.stageTermSingular} (1–{mission.totalStages})</span>
+                        </button>
                       </>
                     ) : (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between text-xs text-slate-400">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{mission.totalStages} {mission.stageTermPlural.toLowerCase()} planejados</span>
-                          </span>
-                          <span className="font-semibold text-slate-300">Próxima etapa</span>
+                      <div className="space-y-2 pt-1">
+                        <div className="flex items-center justify-between text-xs text-sky-200 font-bold">
+                          <span>10 Setores planejados</span>
+                          <span className="font-black text-sky-300">Em Desenvolvimento</span>
                         </div>
 
                         <button
@@ -455,10 +445,10 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                             sounds.playClick();
                             setPreviewMission(mission);
                           }}
-                          className="w-full min-h-[46px] px-4 py-2.5 rounded-2xl bg-slate-950/85 hover:bg-slate-800 border border-slate-700 text-slate-100 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-[0.98] whitespace-nowrap"
+                          className="w-full h-11 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md"
                         >
-                          <span>Ver Plano da Operação</span>
-                          <ChevronRight className="w-4 h-4" />
+                          <span>Ver Prévia da Missão</span>
+                          <ChevronRight className="w-4 h-4 stroke-[3]" />
                         </button>
                       </div>
                     )}
@@ -470,13 +460,17 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 pt-4 mt-4 border-t border-slate-900 gap-1 text-center shrink-0">
-        <span>Corpo de Bombeiros Militar de Minas Gerais (CBMMG)</span>
-        <span>Hub Arcade PWA Offline · Controles Desktop e Mobile</span>
+      {/* 6. JOYFUL FOOTER */}
+      <footer className="relative z-10 w-full max-w-5xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-100/90 border-t border-amber-500/20 gap-1 text-center shrink-0">
+        <span className="font-bold text-amber-200">
+          Corpo de Bombeiros Militar de Minas Gerais (CBMMG)
+        </span>
+        <span className="font-medium">
+          Jogo Educativo e Arcade PWA · Jogue no Celular, Tablet ou Computador
+        </span>
       </footer>
 
-      {/* Modals */}
+      {/* MODALS */}
       {showGuide && (
         <FullscreenGuideModal
           onClose={() => setShowGuide(false)}
