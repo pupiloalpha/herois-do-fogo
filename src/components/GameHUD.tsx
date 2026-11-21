@@ -27,7 +27,35 @@ interface GameHUDProps {
   onPause: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  fireSpreadSpeed?: number;
 }
+
+interface EmberSpec {
+  id: number;
+  positionClass: string;
+  sizeClass: string;
+  timingClass: string;
+  minTier: number;
+}
+
+const EMBER_PARTICLES: EmberSpec[] = [
+  { id: 1, positionClass: 'left-[3%] bottom-[8%]', sizeClass: 'w-1.5 h-1.5 bg-orange-400', timingClass: '[animation-duration:3.4s] [animation-delay:0s]', minTier: 1 },
+  { id: 2, positionClass: 'left-[8%] bottom-[22%]', sizeClass: 'w-1 h-1 bg-amber-300', timingClass: '[animation-duration:4.1s] [animation-delay:0.8s]', minTier: 1 },
+  { id: 3, positionClass: 'left-[5%] bottom-[48%]', sizeClass: 'w-1.5 h-1.5 bg-red-400', timingClass: '[animation-duration:3.8s] [animation-delay:1.5s]', minTier: 1 },
+  { id: 4, positionClass: 'right-[4%] bottom-[12%]', sizeClass: 'w-1.5 h-1.5 bg-amber-400', timingClass: '[animation-duration:3.6s] [animation-delay:0.4s]', minTier: 1 },
+  { id: 5, positionClass: 'right-[7%] bottom-[34%]', sizeClass: 'w-1 h-1 bg-orange-300', timingClass: '[animation-duration:4.3s] [animation-delay:1.9s]', minTier: 1 },
+  { id: 6, positionClass: 'right-[3%] bottom-[58%]', sizeClass: 'w-1.5 h-1.5 bg-red-400', timingClass: '[animation-duration:3.5s] [animation-delay:1.1s]', minTier: 1 },
+  { id: 7, positionClass: 'left-[18%] bottom-[4%]', sizeClass: 'w-1 h-1 bg-amber-300', timingClass: '[animation-duration:4.0s] [animation-delay:2.2s]', minTier: 1 },
+  { id: 8, positionClass: 'right-[20%] bottom-[5%]', sizeClass: 'w-1.5 h-1.5 bg-orange-400', timingClass: '[animation-duration:3.9s] [animation-delay:0.6s]', minTier: 1 },
+  { id: 9, positionClass: 'left-[12%] bottom-[68%]', sizeClass: 'w-1 h-1 bg-amber-200', timingClass: '[animation-duration:3.2s] [animation-delay:1.3s]', minTier: 2 },
+  { id: 10, positionClass: 'right-[11%] bottom-[72%]', sizeClass: 'w-1.5 h-1.5 bg-orange-400', timingClass: '[animation-duration:3.7s] [animation-delay:2.5s]', minTier: 2 },
+  { id: 11, positionClass: 'left-[35%] bottom-[3%]', sizeClass: 'w-1 h-1 bg-red-400', timingClass: '[animation-duration:4.2s] [animation-delay:1.7s]', minTier: 2 },
+  { id: 12, positionClass: 'right-[36%] bottom-[4%]', sizeClass: 'w-1.5 h-1.5 bg-amber-400', timingClass: '[animation-duration:3.3s] [animation-delay:0.2s]', minTier: 2 },
+  { id: 13, positionClass: 'left-[6%] bottom-[82%]', sizeClass: 'w-1.5 h-1.5 bg-red-500', timingClass: '[animation-duration:2.9s] [animation-delay:0.9s]', minTier: 3 },
+  { id: 14, positionClass: 'right-[6%] bottom-[84%]', sizeClass: 'w-1.5 h-1.5 bg-orange-500', timingClass: '[animation-duration:3.1s] [animation-delay:2.1s]', minTier: 3 },
+  { id: 15, positionClass: 'left-[62%] bottom-[3%]', sizeClass: 'w-1 h-1 bg-amber-300', timingClass: '[animation-duration:3.6s] [animation-delay:1.4s]', minTier: 3 },
+  { id: 16, positionClass: 'left-[48%] bottom-[6%]', sizeClass: 'w-1.5 h-1.5 bg-orange-400', timingClass: '[animation-duration:3.4s] [animation-delay:2.7s]', minTier: 3 },
+];
 
 // Desktop Vitals Panel (preserved for md+ right-hand operational cluster)
 const VitalsPanel: React.FC<{
@@ -117,8 +145,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   onPause,
   isFullscreen = false,
   onToggleFullscreen,
+  fireSpreadSpeed = 1.0,
 }) => {
   const [showMobileMissions, setShowMobileMissions] = useState(false);
+
+  const isDangerElevated = fireSpreadSpeed > 1.0;
+  const dangerTier = fireSpreadSpeed >= 1.45 ? 3 : fireSpreadSpeed >= 1.2 ? 2 : 1;
 
   const healthPercent = Math.max(0, Math.min(100, (hud.health / hud.maxHealth) * 100));
   const extPercent = Math.max(0, Math.min(100, (hud.extinguisher / hud.maxExtinguisher) * 100));
@@ -216,6 +248,33 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
   return (
     <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-2 sm:p-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] select-none">
+
+      {/* Subtle Danger Particle Overlay when fire spread speed is elevated */}
+      {isDangerElevated && (
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 pointer-events-none overflow-hidden transition-opacity duration-700"
+        >
+          {/* Soft perimeter heat glow */}
+          <div
+            className={`absolute inset-0 shadow-[inset_0_0_70px_rgba(234,88,12,0.22)] ${
+              dangerTier >= 3
+                ? 'opacity-90'
+                : dangerTier === 2
+                  ? 'opacity-70'
+                  : 'opacity-45'
+            }`}
+          />
+
+          {/* Rising ember particles along edges */}
+          {EMBER_PARTICLES.filter(p => p.minTier <= dangerTier).map(particle => (
+            <span
+              key={particle.id}
+              className={`absolute rounded-full blur-[0.5px] shadow-[0_0_6px_rgba(251,146,60,0.8)] animate-ember-rise ${particle.positionClass} ${particle.sizeClass} ${particle.timingClass}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ================= MOBILE SLIM TOP BAR (< md) ================= */}
       <div className="md:hidden w-full flex flex-col items-center gap-1.5">

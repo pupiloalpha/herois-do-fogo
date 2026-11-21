@@ -205,6 +205,7 @@ export default function App() {
             onPause={() => setGameState('paused')}
             isFullscreen={isFullscreen}
             onToggleFullscreen={isFullscreenSupported ? toggleFullscreen : undefined}
+            fireSpreadSpeed={fireSpreadSpeed}
           />
 
           {/* Mobile Ergonomic Touch Controls */}
