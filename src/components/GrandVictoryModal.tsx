@@ -25,6 +25,7 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
 }) => {
   const hero = CHARACTERS[characterId];
   const isForest = missionId === 'forest_fire';
+  const isFlood = missionId === 'flood_rescue';
 
   useEffect(() => {
     // Multi-stage confetti celebration
@@ -68,15 +69,25 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
         </div>
 
         <span className="text-xs font-black uppercase tracking-widest text-amber-400 block mt-2">
-          {isForest ? 'OPERAÇÃO INCÊNDIO FLORESTAL CONCLUÍDA!' : 'OPERAÇÃO 10 ANDARES CONCLUÍDA!'}
+          {isFlood
+            ? 'OPERAÇÃO ENCHENTES CONCLUÍDA!'
+            : isForest
+              ? 'OPERAÇÃO INCÊNDIO FLORESTAL CONCLUÍDA!'
+              : 'OPERAÇÃO 10 ANDARES CONCLUÍDA!'}
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-white mt-1">
-          {isForest ? 'PARQUE ESTADUAL SALVO!' : 'VITÓRIA TOTAL & RESGATE AÉREO!'}
+          {isFlood
+            ? 'CIDADE EVACUADA COM SUCESSO!'
+            : isForest
+              ? 'PARQUE ESTADUAL SALVO!'
+              : 'VITÓRIA TOTAL & RESGATE AÉREO!'}
         </h1>
         <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
-          {isForest
-            ? <>Todas as frentes de incêndio e brasas foram contidas nos 10 setores e os animais silvestres foram protegidos graças à sua bravura com <strong>{hero.name}</strong>!</>
-            : <>O helicóptero decolou com segurança levando todas as vítimas e animais salvos! O incêndio foi completamente controlado graças à sua bravura com <strong>{hero.name}</strong>!</>}
+          {isFlood
+            ? <>Todas as famílias e animais ilhados nos 10 setores alagados foram resgatados por bote e helicóptero até os abrigos seguros graças à sua bravura com <strong>{hero.name}</strong>!</>
+            : isForest
+              ? <>Todas as frentes de incêndio e brasas foram contidas nos 10 setores e os animais silvestres foram protegidos graças à sua bravura com <strong>{hero.name}</strong>!</>
+              : <>O helicóptero decolou com segurança levando todas as vítimas e animais salvos! O incêndio foi completamente controlado graças à sua bravura com <strong>{hero.name}</strong>!</>}
         </p>
 
         {/* Medalha Card */}
@@ -86,12 +97,18 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-amber-300">
-              {isForest ? 'Medalha Guardião da Serra CBMMG' : 'Medalha de Honra e Bravura CBMMG'}
+              {isFlood
+                ? 'Medalha Herói das Enchentes CBMMG'
+                : isForest
+                  ? 'Medalha Guardião da Serra CBMMG'
+                  : 'Medalha de Honra e Bravura CBMMG'}
             </h3>
             <p className="text-xs text-slate-400">
-              {isForest
-                ? 'Concedida pelo Corpo de Bombeiros Militar pela preservação ambiental e resgate da fauna silvestre.'
-                : 'Concedida pelo Corpo de Bombeiros Militar por salvar vidas humanas, animais e proteger o patrimônio coletivo.'}
+              {isFlood
+                ? 'Concedida pelo Corpo de Bombeiros Militar pelo salvamento aquático e aeromédico de famílias durante grandes enchentes.'
+                : isForest
+                  ? 'Concedida pelo Corpo de Bombeiros Militar pela preservação ambiental e resgate da fauna silvestre.'
+                  : 'Concedida pelo Corpo de Bombeiros Militar por salvar vidas humanas, animais e proteger o patrimônio coletivo.'}
             </p>
             {newlyUnlockedMedals.length > 0 && (
               <p className="text-xs text-emerald-300 font-semibold mt-1">
@@ -115,11 +132,11 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
 
           <div className="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              {isForest ? 'STATUS DO PARQUE' : 'STATUS DO EDIFÍCIO'}
+              {isFlood ? 'STATUS DA CIDADE' : isForest ? 'STATUS DO PARQUE' : 'STATUS DO EDIFÍCIO'}
             </span>
             <div className="flex items-center justify-center gap-1.5 text-base sm:text-lg font-black text-emerald-400 mt-1">
               <CheckCircle className="w-5 h-5 text-emerald-400" />
-              <span>{isForest ? 'FAUNA SALVA!' : '100% SALVO!'}</span>
+              <span>{isFlood ? 'TODOS SALVOS!' : isForest ? 'FAUNA SALVA!' : '100% SALVO!'}</span>
             </div>
           </div>
         </div>
@@ -148,7 +165,7 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
             className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>{isForest ? 'JOGAR NOVAMENTE DO 1º SETOR' : 'JOGAR NOVAMENTE DO 1º ANDAR'}</span>
+            <span>{isFlood || isForest ? 'JOGAR NOVAMENTE DO 1º SETOR' : 'JOGAR NOVAMENTE DO 1º ANDAR'}</span>
           </button>
         </div>
       </div>

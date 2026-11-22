@@ -61,6 +61,24 @@ function getActionMeta(action: ContextualActionType, currentFloor: number) {
         label: 'ENTERRAR',
         classes: 'bg-gradient-to-br from-orange-500 to-amber-600 border-amber-200 text-slate-950 ring-4 ring-orange-400/35 shadow-orange-500/30',
       };
+    case 'flood_victim':
+      return {
+        icon: '🛟',
+        label: 'RESGATAR',
+        classes: 'bg-gradient-to-br from-cyan-400 to-sky-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/45 shadow-cyan-500/35 animate-pulse',
+      };
+    case 'flood_shelter':
+      return {
+        icon: '🏥',
+        label: 'ABRIGO',
+        classes: 'bg-gradient-to-br from-emerald-400 to-teal-600 border-emerald-100 text-slate-950 ring-4 ring-emerald-400/45 shadow-emerald-500/35 animate-pulse',
+      };
+    case 'flood_swap_vehicle':
+      return {
+        icon: '🔄',
+        label: 'VEÍCULO',
+        classes: 'bg-gradient-to-br from-sky-500 to-indigo-600 border-sky-200 text-white ring-4 ring-sky-400/40 shadow-sky-500/30',
+      };
     case 'gas_valve':
       return {
         icon: '⚠️',
@@ -212,7 +230,8 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
   const actionMeta = getActionMeta(contextualAction, currentFloor);
   const activeTool = tools?.find(t => t.id === activeToolId);
-  const usesWater = !tools || activeToolId === 'water';
+  const isTurboMode = primaryControl?.label === 'TURBO';
+  const usesWater = !tools || activeToolId === 'water' || isTurboMode;
   const isTankEmpty = usesWater && extinguisherPercent <= 0;
 
   return (
@@ -343,7 +362,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
             title={activeTool?.label ?? primaryControl?.label ?? 'Extinguir Chamas'}
           >
             <span className={`text-2xl leading-none ${isSpraying ? 'scale-110' : ''}`}>
-              {activeTool
+              {activeTool && !isTurboMode
                 ? activeTool.icon
                 : isSpraying && primaryControl?.activeIcon
                   ? primaryControl.activeIcon
@@ -354,7 +373,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                 ? primaryControl?.emptyLabel ?? 'VAZIO'
                 : isSpraying
                   ? primaryControl?.activeLabel ?? 'JATO'
-                  : activeTool?.label ?? primaryControl?.label ?? 'EXTINTOR'}
+                  : (activeTool && !isTurboMode ? activeTool.label : undefined) ?? primaryControl?.label ?? 'EXTINTOR'}
             </span>
           </button>
         </div>

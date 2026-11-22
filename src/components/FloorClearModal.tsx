@@ -28,6 +28,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
   onReturnHub,
 }) => {
   const isForest = missionId === 'forest_fire';
+  const isFlood = missionId === 'flood_rescue';
 
   useEffect(() => {
     confetti({
@@ -57,12 +58,18 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
           MISSÃO CUMPRIDA!
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          {isForest ? `SETOR ${floorNumber} CONTROLADO!` : `${floorNumber}º ANDAR LIBERADO!`}
+          {isFlood
+            ? `SETOR ${floorNumber} EVACUADO!`
+            : isForest
+              ? `SETOR ${floorNumber} CONTROLADO!`
+              : `${floorNumber}º ANDAR LIBERADO!`}
         </h2>
         <p className="text-xs text-slate-300 mt-1 max-w-xs mx-auto">
-          {isForest
-            ? 'Todas as frentes de fogo e brasas foram contidas e a fauna silvestre está a salvo!'
-            : 'Todos os focos foram extintos, vítimas salvas e riscos neutralizados com sucesso!'}
+          {isFlood
+            ? 'Todas as famílias ilhadas e animais foram levados em segurança até o abrigo!'
+            : isForest
+              ? 'Todas as frentes de fogo e brasas foram contidas e a fauna silvestre está a salvo!'
+              : 'Todos os focos foram extintos, vítimas salvas e riscos neutralizados com sucesso!'}
         </p>
 
         {/* Stars */}
@@ -96,10 +103,12 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
           <div className="mb-4 rounded-2xl bg-orange-950/60 border border-orange-500/40 px-3 py-2 text-xs text-orange-200 flex items-center justify-center gap-2">
             <Flame className="w-4 h-4 text-orange-400 shrink-0" />
             <span>
-              <strong>Desafio Extra (+50% Vida):</strong>{' '}
-              {isForest
-                ? `Propagação ${Math.round(fireSpreadSpeed * 100)}% mais rápida no próximo setor.`
-                : `Chamas ${Math.round(fireSpreadSpeed * 100)}% mais rápidas no próximo andar.`}
+              <strong>{isFlood ? 'Desafio Cabeça d\'Água (+50% Casco):' : 'Desafio Extra (+50% Vida):'}</strong>{' '}
+              {isFlood
+                ? `Correnteza ${Math.round(fireSpreadSpeed * 100)}% mais intensa no próximo setor.`
+                : isForest
+                  ? `Propagação ${Math.round(fireSpreadSpeed * 100)}% mais rápida no próximo setor.`
+                  : `Chamas ${Math.round(fireSpreadSpeed * 100)}% mais rápidas no próximo andar.`}
             </span>
           </div>
         )}
@@ -128,7 +137,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
             }}
             className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 text-slate-950 font-black text-sm sm:text-base shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            <span>{isForest ? `AVANÇAR PARA O ${floorNumber + 1}º SETOR` : `SUBIR PARA O ${floorNumber + 1}º ANDAR`}</span>
+            <span>{isFlood || isForest ? `AVANÇAR PARA O ${floorNumber + 1}º SETOR` : `SUBIR PARA O ${floorNumber + 1}º ANDAR`}</span>
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 

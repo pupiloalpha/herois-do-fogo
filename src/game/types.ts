@@ -80,6 +80,9 @@ export type ContextualActionType =
   | 'wildlife'
   | 'hiker'
   | 'smoldering_log'
+  | 'flood_victim'
+  | 'flood_shelter'
+  | 'flood_swap_vehicle'
   | 'gas_valve'
   | 'electric_panel'
   | 'refill_station'
@@ -138,4 +141,8 @@ export interface GameHUDState {
   windLabel?: string;
   preservedPercent?: number;
   activeToolId?: string;
+  vehicleLabel?: string;
+  aboardCount?: number;
+  maxAboard?: number;
+  currentLabel?: string;
 }

@@ -35,7 +35,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onToggleExtraLift,
   onOpenInstructions,
 }) => {
-  const isForest = missionId === 'forest_fire';
+  const isSectorMission = missionId === 'forest_fire' || missionId === 'flood_rescue';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
@@ -44,7 +44,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           JOGO PAUSADO
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          {isForest ? `SETOR ${floorNumber}` : `${floorNumber}º ANDAR`}
+          {isSectorMission ? `SETOR ${floorNumber}` : `${floorNumber}º ANDAR`}
         </h2>
         <p className="text-xs text-slate-400 mt-1">
           Pontuação: <strong className="text-amber-400 font-mono tabular-nums">{score.toLocaleString('pt-BR')} PTS</strong>
@@ -83,7 +83,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             className="w-full min-h-[46px] py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition border border-slate-700"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>{isForest ? 'REINICIAR SETOR' : 'REINICIAR ANDAR'}</span>
+            <span>{isSectorMission ? 'REINICIAR SETOR' : 'REINICIAR ANDAR'}</span>
           </button>
 
           <button

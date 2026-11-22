@@ -1,7 +1,7 @@
 /**
  * Heróis do Fogo: Hub de Operações CBMMG
  * Missão 1: Resgate nos 10 Andares (Ativa)
- * Missão 2: Operação Enchentes (Planejada)
+ * Missão 2: Operação Enchentes (Ativa)
  * Missão 3: Incêndio Florestal (Ativa)
  */
 
@@ -10,6 +10,8 @@ import { CharacterId, GameHUDState } from './game/types';
 import { FLOORS_DATA } from './game/floorsData';
 import { FOREST_SECTORS } from './game/forest/forestData';
 import { FOREST_TOOLS } from './game/forest/forestTypes';
+import { FLOOD_SECTORS } from './game/flood/floodData';
+import { FLOOD_VEHICLES } from './game/flood/floodTypes';
 import { calculateNextFireSpreadSpeed } from './game/fireMechanics';
 import { PhaserGame, PhaserGameRef } from './game/PhaserGame';
 import { TitleScreen } from './components/TitleScreen';
@@ -177,7 +179,7 @@ export default function App() {
         stars,
         civiliansSaved: latestHud.rescuedCivilians,
         petsSaved: latestHud.rescuedPets,
-        firesExtinguished: latestHud.extinguishedFires,
+        firesExtinguished: activeMissionId === 'flood_rescue' ? 0 : latestHud.extinguishedFires,
       });
       setNewlyUnlockedMedals(unlocked);
       return nextSave;
@@ -217,7 +219,13 @@ export default function App() {
 
   const currentFloorData = FLOORS_DATA.find(f => f.floorNumber === currentFloor) || FLOORS_DATA[0];
   const currentForestSector = FOREST_SECTORS.find(s => s.sectorNumber === currentFloor) || FOREST_SECTORS[0];
-  const activeTools = activeMissionId === 'forest_fire' ? FOREST_TOOLS : undefined;
+  const currentFloodSector = FLOOD_SECTORS.find(s => s.sectorNumber === currentFloor) || FLOOD_SECTORS[0];
+  const activeTools =
+    activeMissionId === 'forest_fire'
+      ? FOREST_TOOLS
+      : activeMissionId === 'flood_rescue' && currentFloodSector.vehiclePolicy === 'mixed'
+        ? FLOOD_VEHICLES
+        : undefined;
 
   return (
     <div
@@ -291,7 +299,7 @@ export default function App() {
               extraLift={extraLift}
               primaryControl={activeMission.primaryControl}
               tools={activeTools}
-              activeToolId={hudState.activeToolId ?? 'water'}
+              activeToolId={hudState.activeToolId ?? (activeMissionId === 'flood_rescue' ? currentFloodSector.initialVehicle : 'water')}
               onSelectTool={(id) => phaserRef.current?.setTool(id)}
             />
           )}
@@ -301,6 +309,7 @@ export default function App() {
             <FloorBriefingModal
               floor={currentFloorData}
               forestSector={activeMissionId === 'forest_fire' ? currentForestSector : undefined}
+              floodSector={activeMissionId === 'flood_rescue' ? currentFloodSector : undefined}
               missionTitle={activeMission.title}
               stageTerm={activeMission.stageTermSingular.toUpperCase()}
               totalStages={activeMission.totalStages}

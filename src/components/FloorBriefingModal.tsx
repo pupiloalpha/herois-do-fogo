@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { FloorData } from '../game/types';
 import { ForestSectorData, WindDirection } from '../game/forest/forestTypes';
+import { FloodSectorData } from '../game/flood/floodTypes';
 import { Radio, Users, Flame, AlertTriangle, Zap, CheckCircle2, Play, ChevronDown, ChevronUp, Wind, Clock, Trees, Compass } from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface FloorBriefingModalProps {
   floor: FloorData;
   forestSector?: ForestSectorData;
+  floodSector?: FloodSectorData;
   missionTitle?: string;
   stageTerm?: string;
   totalStages?: number;
@@ -28,6 +30,7 @@ const WIND_NAMES: Record<WindDirection, string> = {
 export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
   floor,
   forestSector,
+  floodSector,
   missionTitle,
   stageTerm = 'ANDAR',
   totalStages = 10,
@@ -37,12 +40,46 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
   const [showFullLore, setShowFullLore] = useState(false);
   const [showMobileDetails, setShowMobileDetails] = useState(false);
 
-  const stageNumber = forestSector ? forestSector.sectorNumber : floor.floorNumber;
-  const stageName = forestSector ? forestSector.name : floor.name;
-  const stageSubtitle = forestSector ? forestSector.subtitle : floor.subtitle;
-  const stageDescription = forestSector ? forestSector.description : floor.description;
-  const stageRadio = forestSector ? forestSector.radioDispatch : floor.radioDispatch;
-  const timeLimitSeconds = forestSector ? forestSector.timeLimitSeconds : floor.timeLimitSeconds;
+  const stageNumber = floodSector
+    ? floodSector.sectorNumber
+    : forestSector
+      ? forestSector.sectorNumber
+      : floor.floorNumber;
+  const stageName = floodSector
+    ? floodSector.name
+    : forestSector
+      ? forestSector.name
+      : floor.name;
+  const stageSubtitle = floodSector
+    ? floodSector.subtitle
+    : forestSector
+      ? forestSector.subtitle
+      : floor.subtitle;
+  const stageDescription = floodSector
+    ? floodSector.description
+    : forestSector
+      ? forestSector.description
+      : floor.description;
+  const stageRadio = floodSector
+    ? floodSector.radioDispatch
+    : forestSector
+      ? forestSector.radioDispatch
+      : floor.radioDispatch;
+  const timeLimitSeconds = floodSector
+    ? floodSector.timeLimitSeconds
+    : forestSector
+      ? forestSector.timeLimitSeconds
+      : floor.timeLimitSeconds;
+
+  const floodTotalPeople = floodSector
+    ? floodSector.rescueSpots.reduce((sum, spot) => sum + spot.victims, 0)
+    : 0;
+  const floodTotalPets = floodSector
+    ? floodSector.rescueSpots.filter(spot => spot.hasPet).length
+    : 0;
+  const floodSinkingCount = floodSector
+    ? floodSector.rescueSpots.filter(spot => spot.kind === 'sinking_car').length
+    : 0;
 
   useEffect(() => {
     sounds.playClick();
@@ -58,14 +95,14 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
-      <div className={`w-full max-w-xl max-h-[92dvh] flex flex-col rounded-3xl border bg-slate-900/98 shadow-2xl text-white relative overflow-hidden ${forestSector ? 'border-emerald-500/50' : 'border-orange-500/50'}`}>
+      <div className={`w-full max-w-xl max-h-[92dvh] flex flex-col rounded-3xl border bg-slate-900/98 shadow-2xl text-white relative overflow-hidden ${floodSector ? 'border-cyan-500/50' : forestSector ? 'border-emerald-500/50' : 'border-orange-500/50'}`}>
         {/* Top Header */}
         <div className="flex items-center justify-between p-3.5 sm:p-5 pb-2.5 sm:pb-3 border-b border-slate-800 shrink-0 bg-slate-950/60">
           <div className="flex items-center gap-2 min-w-0">
-            <span className={`px-2.5 sm:px-3 py-1 rounded-xl text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shrink-0 ${forestSector ? 'bg-emerald-500' : 'bg-orange-600'}`}>
+            <span className={`px-2.5 sm:px-3 py-1 rounded-xl text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shrink-0 ${floodSector ? 'bg-cyan-400' : forestSector ? 'bg-emerald-500' : 'bg-orange-600'}`}>
               {stageTerm} {stageNumber}/{totalStages}
             </span>
-            <span className={`text-xs sm:text-sm font-bold truncate ${forestSector ? 'text-emerald-400' : 'text-orange-400'}`}>
+            <span className={`text-xs sm:text-sm font-bold truncate ${floodSector ? 'text-cyan-400' : forestSector ? 'text-emerald-400' : 'text-orange-400'}`}>
               {missionTitle ? `${missionTitle} · ${stageSubtitle}` : stageSubtitle}
             </span>
           </div>
@@ -104,7 +141,7 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
                   {stageDescription.slice(0, 100)}...{' '}
                   <button
                     onClick={() => setShowFullLore(true)}
-                    className={`font-bold underline ml-1 ${forestSector ? 'text-emerald-400 hover:text-emerald-300' : 'text-orange-400 hover:text-orange-300'}`}
+                    className={`font-bold underline ml-1 ${floodSector ? 'text-cyan-400 hover:text-cyan-300' : forestSector ? 'text-emerald-400 hover:text-emerald-300' : 'text-orange-400 hover:text-orange-300'}`}
                   >
                     Ler mais
                   </button>
@@ -117,7 +154,7 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-wider">
-                {forestSector ? 'Metas do Setor' : 'Metas do Andar'}
+                {floodSector || forestSector ? 'Metas do Setor' : 'Metas do Andar'}
               </h3>
               <span className="text-xs text-amber-400 font-mono tabular-nums font-bold flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
@@ -125,7 +162,46 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
               </span>
             </div>
 
-            {forestSector ? (
+            {floodSector ? (
+              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-cyan-500/35 text-slate-100">
+                  <span className="text-base sm:text-lg shrink-0">👥</span>
+                  <span><strong>{floodTotalPeople}</strong> pessoa(s) ilhada(s)</span>
+                </div>
+
+                {floodTotalPets > 0 && (
+                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-amber-500/35 text-slate-100">
+                    <span className="text-base sm:text-lg shrink-0">🐾</span>
+                    <span><strong>{floodTotalPets}</strong> animal(is)</span>
+                  </div>
+                )}
+
+                {floodSinkingCount > 0 && (
+                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-rose-500/45 text-slate-100">
+                    <span className="text-base sm:text-lg shrink-0">🚗</span>
+                    <span><strong>{floodSinkingCount}</strong> carro(s) afundando</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-sky-500/35 text-slate-100">
+                  <span className="text-base sm:text-lg shrink-0">
+                    {floodSector.vehiclePolicy === 'helicopter' ? '🚁' : floodSector.vehiclePolicy === 'mixed' ? '🚤🚁' : '🚤'}
+                  </span>
+                  <span className="truncate">
+                    {floodSector.vehiclePolicy === 'mixed'
+                      ? 'Bote + Arcanjo'
+                      : floodSector.vehiclePolicy === 'helicopter'
+                        ? 'Helicóptero Arcanjo'
+                        : 'Bote Inflável (cap. 3)'}
+                  </span>
+                </div>
+
+                <div className="col-span-2 flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
+                  <span className="text-base sm:text-lg shrink-0">🌊</span>
+                  <span>{floodSector.currentLabel} · {floodSector.shelters.length} Abrigo(s) Seguro(s)</span>
+                </div>
+              </div>
+            ) : forestSector ? (
               <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                 {forestSector.wildlife.length > 0 && (
                   <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-amber-500/35 text-slate-100">
@@ -207,7 +283,13 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
             onClick={() => setShowMobileDetails(prev => !prev)}
             className="md:hidden w-full py-2 px-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs font-semibold text-slate-300 flex items-center justify-between"
           >
-            <span>{forestSector ? 'Detalhes táticos (Rádio, Ferramentas e Riachos)' : 'Detalhes da ocorrência (Rádio e Hidrante)'}</span>
+            <span>
+              {floodSector
+                ? 'Detalhes táticos (Rádio, Turbo e Abrigo)'
+                : forestSector
+                  ? 'Detalhes táticos (Rádio, Ferramentas e Riachos)'
+                  : 'Detalhes da ocorrência (Rádio e Hidrante)'}
+            </span>
             {showMobileDetails ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
           </button>
 
@@ -219,7 +301,30 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
               <p className="leading-snug italic font-medium">"{stageRadio}"</p>
             </div>
 
-            {forestSector ? (
+            {floodSector ? (
+              <>
+                <div className="bg-cyan-950/40 border border-cyan-500/35 p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm text-cyan-100 space-y-1">
+                  <strong className="text-cyan-300 block font-black">
+                    Manual de Navegação e Guincho CBMMG
+                  </strong>
+                  <p className="text-[11px] sm:text-xs text-slate-200 leading-relaxed">
+                    Use <strong>[ESPAÇO] / Turbo</strong> para vencer a correnteza, aperte <strong>[E] / [AÇÃO]</strong> perto dos ilhados para embarcar ou içar, e aproxime-se do <strong>Abrigo Seguro (H)</strong> para desembarcar, reparar e reabastecer!
+                  </p>
+                </div>
+
+                {floodSector.electricPoles.length > 0 && (
+                  <div className="bg-amber-950/40 border border-amber-500/35 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-amber-200">
+                    <span className="text-xl shrink-0">⚡</span>
+                    <div>
+                      <strong className="text-amber-300 block text-xs sm:text-sm font-black">
+                        Postes Energizados na Água ({floodSector.electricPoles.length})
+                      </strong>
+                      <span>Mantenha distância dos halos amarelos para não sofrer descargas elétricas.</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : forestSector ? (
               <>
                 <div className="bg-emerald-950/35 border border-emerald-500/30 p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm text-emerald-100 space-y-1.5">
                   <strong className="text-emerald-300 block font-black">
@@ -285,9 +390,11 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
               onStartFloor();
             }}
             className={`w-full min-h-[48px] py-3.5 sm:py-4 rounded-2xl text-slate-950 font-black text-base sm:text-lg shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 ${
-              forestSector
-                ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500'
-                : 'bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600'
+              floodSector
+                ? 'bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400'
+                : forestSector
+                  ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500'
+                  : 'bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600'
             }`}
           >
             <Play className="w-5 h-5 fill-slate-950 text-slate-950" />

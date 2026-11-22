@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } f
 import type PhaserType from 'phaser';
 import type { GameScene as GameSceneType } from './GameScene';
 import type { ForestScene as ForestSceneType } from './forest/ForestScene';
+import type { FloodScene as FloodSceneType } from './flood/FloodScene';
 import { CharacterId, GameHUDState } from './types';
 import { MissionId } from '../hub/types';
 
-type ActiveSceneInstance = GameSceneType | ForestSceneType;
+type ActiveSceneInstance = GameSceneType | ForestSceneType | FloodSceneType;
 
 export interface PhaserGameRef {
   setMovement: (vx: number, vy: number) => void;
@@ -95,17 +96,24 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
       if (!containerRef.current) return;
 
       const isForest = missionId === 'forest_fire';
+      const isFlood = missionId === 'flood_rescue';
       const [{ default: Phaser }, sceneModule] = await Promise.all([
         import('phaser'),
-        isForest ? import('./forest/ForestScene') : import('./GameScene'),
+        isForest
+          ? import('./forest/ForestScene')
+          : isFlood
+            ? import('./flood/FloodScene')
+            : import('./GameScene'),
       ]);
 
       if (isCancelled || !containerRef.current) return;
 
       const SceneClass = isForest
         ? (sceneModule as typeof import('./forest/ForestScene')).ForestScene
-        : (sceneModule as typeof import('./GameScene')).GameScene;
-      const sceneKey = isForest ? 'ForestScene' : 'GameScene';
+        : isFlood
+          ? (sceneModule as typeof import('./flood/FloodScene')).FloodScene
+          : (sceneModule as typeof import('./GameScene')).GameScene;
+      const sceneKey = isForest ? 'ForestScene' : isFlood ? 'FloodScene' : 'GameScene';
 
       const width = containerRef.current.clientWidth || 800;
       const height = containerRef.current.clientHeight || 600;
@@ -115,7 +123,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
         parent: containerRef.current,
         width,
         height,
-        backgroundColor: isForest ? '#1a2e05' : '#090d16',
+        backgroundColor: isForest ? '#1a2e05' : isFlood ? '#082f49' : '#090d16',
         physics: {
           default: 'arcade',
           arcade: {

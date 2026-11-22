@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Award, Star, RotateCcw, CheckCircle2, Lock } from 'lucide-react';
-import { HUB_MEDALS } from '../hub/missionsCatalog';
-import { getCareerRank, getTotalHubStars } from '../hub/hubProgress';
+import { HUB_MEDALS, MISSIONS_CATALOG } from '../hub/missionsCatalog';
+import { getCareerRank, getMissionProgressSummary, getTotalHubStars } from '../hub/hubProgress';
 import { HubSaveState } from '../hub/types';
 import { sounds } from '../audio/SoundManager';
 
@@ -78,6 +78,25 @@ export const CareerModal: React.FC<CareerModalProps> = ({
                 style={{ width: `${rank.progressPercent}%` }}
               />
             </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800/80">
+              {MISSIONS_CATALOG.map((mission) => {
+                const summary = getMissionProgressSummary(saveState, mission.id);
+                return (
+                  <div
+                    key={mission.id}
+                    className="rounded-xl bg-slate-900/80 border border-slate-800 px-2.5 py-2 text-center"
+                  >
+                    <div className="text-[11px] font-bold text-slate-200 truncate">
+                      {mission.badgeEmoji} {mission.title.split(' ')[0]}
+                    </div>
+                    <div className="text-[10px] font-mono text-amber-300 mt-0.5">
+                      {summary.completedStages}/{summary.totalStages} · {summary.earnedStars}★
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Lifetime Stats */}
@@ -125,6 +144,14 @@ export const CareerModal: React.FC<CareerModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {HUB_MEDALS.map((medal) => {
                 const unlocked = saveState.unlockedMedals.includes(medal.id);
+                const scopeTag =
+                  medal.missionId === 'vertical_10'
+                    ? '🏢 10 Andares'
+                    : medal.missionId === 'forest_fire'
+                      ? '🌲 Florestal'
+                      : medal.missionId === 'flood_rescue'
+                        ? '🚤 Enchentes'
+                        : '🏅 Cruzada';
                 return (
                   <div
                     key={medal.id}
@@ -149,6 +176,9 @@ export const CareerModal: React.FC<CareerModalProps> = ({
                       <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
                         {medal.description}
                       </p>
+                      <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                        {scopeTag}
+                      </span>
                     </div>
                   </div>
                 );

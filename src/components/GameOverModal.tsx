@@ -22,6 +22,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onHome,
 }) => {
   const isForest = missionId === 'forest_fire';
+  const isFlood = missionId === 'flood_rescue';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
@@ -34,7 +35,11 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           ALERTA DE RETIRADA
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-          {isForest ? 'FRENTE DE FOGO NÃO CONTIDA!' : 'BOMBEIRO FORA DE COMBATE!'}
+          {isFlood
+            ? 'OPERAÇÃO AQUÁTICA INTERROMPIDA!'
+            : isForest
+              ? 'FRENTE DE FOGO NÃO CONTIDA!'
+              : 'BOMBEIRO FORA DE COMBATE!'}
         </h2>
         <p className="text-xs sm:text-sm text-red-200 mt-2 bg-red-950/60 border border-red-800/60 p-3 rounded-xl font-medium">
           {reason}
@@ -58,7 +63,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="w-full py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>{isForest ? `TENTAR O SETOR ${floorNumber} NOVAMENTE` : `TENTAR O ${floorNumber}º ANDAR NOVAMENTE`}</span>
+            <span>{isFlood || isForest ? `TENTAR O SETOR ${floorNumber} NOVAMENTE` : `TENTAR O ${floorNumber}º ANDAR NOVAMENTE`}</span>
           </button>
 
           <button

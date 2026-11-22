@@ -48,7 +48,7 @@ export const MISSIONS_CATALOG: MissionCatalogEntry[] = [
     title: 'Operação Enchentes',
     subtitle: 'Resgate Aquático e Aéreo',
     badgeEmoji: '🚤',
-    status: 'coming_soon',
+    status: 'playable',
     totalStages: 10,
     stageTermSingular: 'Setor',
     stageTermPlural: 'Setores',
@@ -70,7 +70,7 @@ export const MISSIONS_CATALOG: MissionCatalogEntry[] = [
       activeIcon: '💨',
       label: 'TURBO',
       activeLabel: 'IMPULSO',
-      emptyLabel: 'EXAUSTO',
+      emptyLabel: 'SEM GÁS',
     },
     plannedSectorsPreview: [
       'Setor 1 · Avenida Submersa (Bote)',
@@ -137,11 +137,11 @@ export const MISSIONS_BY_ID: Record<MissionId, MissionCatalogEntry> = {
 
 export const CAREER_RANKS: CareerRank[] = [
   { id: 'soldado', title: 'Soldado Combatente', minStars: 0, insignia: '🔰' },
-  { id: 'cabo', title: 'Cabo de Resgate', minStars: 6, insignia: '🪖' },
-  { id: 'sargento', title: 'Sargento Operacional', minStars: 15, insignia: '🎖️' },
-  { id: 'tenente', title: 'Tenente Tático', minStars: 24, insignia: '⭐' },
-  { id: 'capitao', title: 'Capitão de Salvamento', minStars: 35, insignia: '🌟' },
-  { id: 'comandante', title: 'Comandante CBMMG', minStars: 50, insignia: '🏅' },
+  { id: 'cabo', title: 'Cabo de Resgate', minStars: 8, insignia: '🪖' },
+  { id: 'sargento', title: 'Sargento Operacional', minStars: 18, insignia: '🎖️' },
+  { id: 'tenente', title: 'Tenente Tático', minStars: 32, insignia: '⭐' },
+  { id: 'capitao', title: 'Capitão de Salvamento', minStars: 48, insignia: '🌟' },
+  { id: 'comandante', title: 'Comandante CBMMG', minStars: 68, insignia: '🏅' },
 ];
 
 export const HUB_MEDALS: MedalDefinition[] = [
@@ -150,24 +150,23 @@ export const HUB_MEDALS: MedalDefinition[] = [
     title: 'Batismo de Fogo',
     description: 'Concluiu sua primeira fase com sucesso no Hub CBMMG.',
     icon: '🔥',
-    missionId: 'vertical_10',
   },
   {
     id: 'perfection_three_stars',
     title: 'Precisão Máxima',
-    description: 'Alcançou 3 estrelas em qualquer fase ou andar.',
+    description: 'Alcançou 3 estrelas em qualquer fase ou setor do Hub.',
     icon: '⭐',
   },
   {
     id: 'lifesaver_10',
     title: 'Anjo da Guarda',
-    description: 'Resgatou 10 pessoas em operações do CBMMG.',
+    description: 'Resgatou 10 ou mais pessoas somadas entre as operações.',
     icon: '🤝',
   },
   {
     id: 'pet_protector_5',
     title: 'Protetor Animal',
-    description: 'Resgatou 5 animais de estimação ou silvestres em perigo.',
+    description: 'Resgatou 5 animais domésticos ou silvestres em perigo.',
     icon: '🐾',
   },
   {
@@ -179,14 +178,21 @@ export const HUB_MEDALS: MedalDefinition[] = [
   {
     id: 'vertical_10_hero',
     title: 'Herói dos 10 Andares',
-    description: 'Completou todos os 10 andares até o resgate de helicóptero.',
-    icon: '🚁',
+    description: 'Completou todos os 10 andares até o heliponto.',
+    icon: '🏢',
     missionId: 'vertical_10',
+  },
+  {
+    id: 'forest_ranger',
+    title: 'Brigadista da Mata',
+    description: 'Conteve 3 ou mais setores da missão Incêndio Florestal.',
+    icon: '🪓',
+    missionId: 'forest_fire',
   },
   {
     id: 'wildlife_guardian',
     title: 'Guardião da Fauna',
-    description: 'Resgatou 10 animais (domésticos ou silvestres) em operações.',
+    description: 'Salvou fauna silvestre no parque ou atingiu 10 animais salvos.',
     icon: '🦊',
     missionId: 'forest_fire',
   },
@@ -196,5 +202,44 @@ export const HUB_MEDALS: MedalDefinition[] = [
     description: 'Concluiu todos os 10 setores da missão Incêndio Florestal.',
     icon: '🌲',
     missionId: 'forest_fire',
+  },
+  {
+    id: 'flood_captain',
+    title: 'Timoneiro das Águas',
+    description: 'Evacuou 3 ou mais setores da Operação Enchentes.',
+    icon: '🚤',
+    missionId: 'flood_rescue',
+  },
+  {
+    id: 'flood_arcangel',
+    title: 'Piloto do Arcanjo',
+    description: 'Cumpriu operação aérea a partir do Setor 4 nas Enchentes.',
+    icon: '🛟',
+    missionId: 'flood_rescue',
+  },
+  {
+    id: 'flood_hero',
+    title: 'Herói das Enchentes',
+    description: 'Concluiu todos os 10 setores da Operação Enchentes.',
+    icon: '🚁',
+    missionId: 'flood_rescue',
+  },
+  {
+    id: 'triad_responder',
+    title: 'Força-Tarefa Três Frentes',
+    description: 'Concluiu fases nas 3 missões do Hub (Prédio, Floresta e Enchentes).',
+    icon: '🔰',
+  },
+  {
+    id: 'hero_all_stars_45',
+    title: 'Lenda do 193',
+    description: 'Acumulou 45 ou mais estrelas somadas entre as 3 missões.',
+    icon: '🌟',
+  },
+  {
+    id: 'master_all_missions',
+    title: 'Comando Supremo CBMMG',
+    description: 'Completou todas as 30 fases das 3 missões do Hub.',
+    icon: '🏅',
   },
 ];

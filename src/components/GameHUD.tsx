@@ -226,6 +226,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   const [showMobileMissions, setShowMobileMissions] = useState(false);
 
   const isForest = hud.missionId === 'forest_fire';
+  const isFlood = hud.missionId === 'flood_rescue';
   const stagePrefix = stageTerm.charAt(0).toUpperCase();
   const isDangerElevated = fireSpreadSpeed > 1.0;
   const dangerTier = fireSpreadSpeed >= 1.45 ? 3 : fireSpreadSpeed >= 1.2 ? 2 : 1;
@@ -348,7 +349,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
           {/* Center: Stage & Timer */}
           <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
-            <span className={`text-[11px] font-black ${isForest ? 'text-emerald-400' : 'text-orange-400'}`}>
+            <span className={`text-[11px] font-black ${isFlood ? 'text-cyan-400' : isForest ? 'text-emerald-400' : 'text-orange-400'}`}>
               {stagePrefix}{hud.currentFloor}
             </span>
             <span className="text-slate-600 text-xs">·</span>
@@ -402,12 +403,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 {hud.score.toLocaleString('pt-BR')}
               </span>
             </div>
-            {(hud.windLabel || hud.preservedPercent !== undefined) && (
+            {(hud.windLabel || hud.preservedPercent !== undefined || hud.vehicleLabel) && (
               <div className="mb-2 pb-1.5 border-b border-slate-800 flex items-center justify-between text-[10px] font-bold">
                 {hud.windLabel && <span className="text-sky-300">{hud.windLabel}</span>}
                 {hud.preservedPercent !== undefined && (
                   <span className={hud.preservedPercent < 55 ? 'text-amber-300' : 'text-emerald-300'}>
                     🌲 {hud.preservedPercent}%
+                  </span>
+                )}
+                {hud.vehicleLabel && <span className="text-cyan-300">{hud.vehicleLabel}</span>}
+                {hud.aboardCount !== undefined && hud.maxAboard !== undefined && (
+                  <span className={hud.aboardCount >= hud.maxAboard ? 'text-amber-300' : 'text-emerald-300'}>
+                    🛟 {hud.aboardCount}/{hud.maxAboard}
                   </span>
                 )}
               </div>
@@ -416,21 +423,40 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
         )}
 
-        {/* Mobile Single-Line Alert or Forest Telemetry */}
+        {/* Mobile Single-Line Alert or Mission Telemetry */}
         {hud.exitUnlocked ? (
           <div className="bg-emerald-600/95 border border-emerald-300 text-white text-[11px] font-black px-3 py-0.5 rounded-full shadow-lg animate-bounce flex items-center gap-1 whitespace-nowrap">
             <Sparkles className="w-3 h-3" />
-            <span>{isForest ? 'SETOR CONTROLADO!' : 'SAÍDA LIBERADA!'}</span>
+            <span>{isFlood ? 'SETOR EVACUADO!' : isForest ? 'SETOR CONTROLADO!' : 'SAÍDA LIBERADA!'}</span>
+          </div>
+        ) : isFlood && hud.aboardCount !== undefined && hud.maxAboard !== undefined && hud.aboardCount >= hud.maxAboard ? (
+          <div className="bg-emerald-600/95 border border-emerald-200 text-white text-[11px] font-black px-3 py-0.5 rounded-full shadow-lg animate-pulse flex items-center gap-1 whitespace-nowrap">
+            <span>🏥</span>
+            <span>LOTADO ({hud.aboardCount}/{hud.maxAboard})! VÁ AO ABRIGO (H)</span>
           </div>
         ) : hud.extinguisher <= 0 ? (
           <div className="bg-red-600/95 border border-amber-300 text-white text-[11px] font-black px-3 py-0.5 rounded-full shadow-lg animate-pulse flex items-center gap-1 whitespace-nowrap">
-            <span>🚰</span>
+            <span>{isFlood ? '⛽' : '🚰'}</span>
             <span>{labels?.emptyResourceAlertText ?? 'EXTINTOR VAZIO! RECARREGUE NO HIDRANTE'}</span>
           </div>
         ) : hud.smokeAlert ? (
           <div className="bg-amber-600/95 border border-amber-200 text-slate-950 text-[11px] font-black px-3 py-0.5 rounded-full shadow-lg animate-pulse flex items-center gap-1 whitespace-nowrap">
-            <span>{isForest ? '🔥' : '💨'}</span>
-            <span>{isForest ? 'CALOR EXTREMO! AFASTE-SE DO FOGO' : 'FUMAÇA TÓXICA! USE O JATO'}</span>
+            <span>{isFlood ? '⚡' : isForest ? '🔥' : '💨'}</span>
+            <span>
+              {isFlood
+                ? 'RISCO ELÉTRICO / CORRENTEZA!'
+                : isForest
+                  ? 'CALOR EXTREMO! AFASTE-SE DO FOGO'
+                  : 'FUMAÇA TÓXICA! USE O JATO'}
+            </span>
+          </div>
+        ) : isFlood && hud.vehicleLabel ? (
+          <div className="bg-slate-950/85 border border-cyan-500/40 text-slate-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow flex items-center gap-2 whitespace-nowrap">
+            <span className="text-cyan-300">{hud.vehicleLabel}</span>
+            <span className="text-slate-600">·</span>
+            <span className={(hud.aboardCount ?? 0) > 0 ? 'text-amber-300' : 'text-slate-300'}>
+              A Bordo: {hud.aboardCount ?? 0}/{hud.maxAboard ?? 3}
+            </span>
           </div>
         ) : isForest && (hud.windLabel || hud.preservedPercent !== undefined) ? (
           <div className="bg-slate-950/85 border border-emerald-500/35 text-slate-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow flex items-center gap-2 whitespace-nowrap">
@@ -452,10 +478,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
         {/* Center: Stage Indicator & Timer */}
         <div className="flex flex-col items-center gap-1 shrink-0">
-          <div className={`bg-slate-900/90 border rounded-2xl px-4 py-1.5 shadow-xl flex items-center gap-3 ${isForest ? 'border-emerald-500/40' : 'border-orange-500/40'}`}>
+          <div className={`bg-slate-900/90 border rounded-2xl px-4 py-1.5 shadow-xl flex items-center gap-3 ${isFlood ? 'border-cyan-500/40' : isForest ? 'border-emerald-500/40' : 'border-orange-500/40'}`}>
             <div className="flex items-center gap-1">
-              <span className={`text-xs font-bold uppercase tracking-wider ${isForest ? 'text-emerald-400' : 'text-orange-400'}`}>{stageTerm}</span>
-              <span className={`text-white font-extrabold text-sm px-2 py-0.5 rounded-lg shadow-sm ${isForest ? 'bg-emerald-600' : 'bg-orange-600'}`}>
+              <span className={`text-xs font-bold uppercase tracking-wider ${isFlood ? 'text-cyan-400' : isForest ? 'text-emerald-400' : 'text-orange-400'}`}>{stageTerm}</span>
+              <span className={`text-white font-extrabold text-sm px-2 py-0.5 rounded-lg shadow-sm ${isFlood ? 'bg-cyan-600' : isForest ? 'bg-emerald-600' : 'bg-orange-600'}`}>
                 {hud.currentFloor}/{totalStages}
               </span>
             </div>
@@ -463,10 +489,27 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             <div className="h-4 w-px bg-slate-700" />
 
             <div className={`flex items-center gap-1 font-mono font-bold text-base tabular-nums ${isTimeCritical ? 'text-red-400 animate-pulse' : 'text-slate-100'}`}>
-              <Clock className={`w-3.5 h-3.5 ${isForest ? 'text-emerald-400' : 'text-orange-400'}`} />
+              <Clock className={`w-3.5 h-3.5 ${isFlood ? 'text-cyan-400' : isForest ? 'text-emerald-400' : 'text-orange-400'}`} />
               <span>{formattedTime}</span>
             </div>
           </div>
+
+          {/* Flood Telemetry Strip */}
+          {isFlood && hud.vehicleLabel && (
+            <div className="bg-slate-950/90 border border-cyan-500/35 rounded-full px-3 py-0.5 shadow-lg flex items-center gap-2.5 text-xs font-bold">
+              <span className="text-cyan-300">{hud.vehicleLabel}</span>
+              <span className="text-slate-600">|</span>
+              <span className={(hud.aboardCount ?? 0) >= (hud.maxAboard ?? 3) ? 'text-amber-300 animate-pulse' : 'text-emerald-300'}>
+                🛟 A Bordo: {hud.aboardCount ?? 0}/{hud.maxAboard ?? 3}
+              </span>
+              {hud.currentLabel && (
+                <>
+                  <span className="text-slate-600">|</span>
+                  <span className="text-sky-300">{hud.currentLabel}</span>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Forest Telemetry Strip (Wind & Vegetation Preservation) */}
           {isForest && (hud.windLabel || hud.preservedPercent !== undefined) && (
@@ -491,13 +534,20 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {hud.exitUnlocked ? (
             <div className="bg-emerald-600/95 border-2 border-emerald-300 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 pointer-events-auto">
               <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-              <span>{isForest ? 'SETOR CONTROLADO!' : 'SAÍDA LIBERADA! VÁ ATÉ A PORTA!'}</span>
+              <span>{isFlood ? 'SETOR EVACUADO!' : isForest ? 'SETOR CONTROLADO!' : 'SAÍDA LIBERADA! VÁ ATÉ A PORTA!'}</span>
+            </div>
+          ) : isFlood && hud.aboardCount !== undefined && hud.maxAboard !== undefined && hud.aboardCount >= hud.maxAboard ? (
+            <div className="bg-emerald-600/95 border border-emerald-300 text-white text-xs font-black px-3 py-1 rounded-full shadow-xl animate-pulse flex items-center gap-1.5 pointer-events-auto">
+              <span>🏥</span>
+              <span>LOTADO ({hud.aboardCount}/{hud.maxAboard})! Leve ao Abrigo Seguro (H)!</span>
             </div>
           ) : (
             <div className="text-xs text-slate-300 bg-slate-900/80 px-2.5 py-0.5 rounded-full border border-slate-800 font-medium">
-              {isForest
-                ? 'Contenha os focos, enterre brasas e salve a fauna'
-                : 'Cumpra as metas para liberar a escada'}
+              {isFlood
+                ? 'Resgate ilhados e desembarque no Abrigo (H) · [ESPAÇO] Turbo'
+                : isForest
+                  ? 'Contenha os focos, enterre brasas e salve a fauna'
+                  : 'Cumpra as metas para liberar a escada'}
             </div>
           )}
 
@@ -506,21 +556,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             <div className="bg-red-600 border-2 border-amber-300 text-white text-xs font-black px-3 py-1 rounded-full shadow-2xl animate-bounce flex items-center gap-1.5 pointer-events-auto">
               <span>🚨</span>
               <span>
-                {isForest
-                  ? 'BOMBA VAZIA! Use o Abafador [2] ou encha no Riacho [🚰]!'
-                  : 'EXTINTOR VAZIO! Vá ao Hidrante [🚰] e aperte [AÇÃO]!'}
+                {isFlood
+                  ? 'COMBUSTÍVEL BAIXO! Vá ao Abrigo (H) para reabastecer!'
+                  : isForest
+                    ? 'BOMBA VAZIA! Use o Abafador [2] ou encha no Riacho [🚰]!'
+                    : 'EXTINTOR VAZIO! Vá ao Hidrante [🚰] e aperte [AÇÃO]!'}
               </span>
             </div>
           )}
 
-          {/* Thermal / Smoke Exposure Alert */}
+          {/* Thermal / Smoke / Electrical Exposure Alert */}
           {hud.smokeAlert && hud.extinguisher > 0 && !hud.exitUnlocked && (
             <div className="bg-amber-600/95 border border-amber-300 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full shadow-lg animate-pulse flex items-center gap-1.5 pointer-events-auto">
-              <span>{isForest ? '🔥' : '💨'}</span>
+              <span>{isFlood ? '⚡' : isForest ? '🔥' : '💨'}</span>
               <span>
-                {isForest
-                  ? 'CALOR EXTREMO! Afaste-se do fogo ou resfrie no riacho!'
-                  : 'FUMAÇA ESPESSA! Disperse com o Extintor para não sufocar!'}
+                {isFlood
+                  ? 'POSTE ENERGIZADO / CORRENTEZA FORTE! Desvie do arco elétrico!'
+                  : isForest
+                    ? 'CALOR EXTREMO! Afaste-se do fogo ou resfrie no riacho!'
+                    : 'FUMAÇA ESPESSA! Disperse com o Extintor para não sufocar!'}
               </span>
             </div>
           )}
@@ -633,7 +687,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               );
             })}
             <span className="text-[11px] text-slate-400 font-medium px-2 border-l border-slate-800">
-              [ESPAÇO] Usar · [E] Resgatar / Riacho
+              {isFlood
+                ? '[ESPAÇO] Turbo · [E] Resgatar / Desembarcar · [1/2] Trocar no Abrigo'
+                : '[ESPAÇO] Usar · [E] Resgatar / Riacho'}
             </span>
           </div>
         )}

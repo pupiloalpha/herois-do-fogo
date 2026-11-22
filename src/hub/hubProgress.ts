@@ -256,13 +256,64 @@ export function recordStageClear(
   if (clampedStars >= 3) unlock('perfection_three_stars');
   if (nextStats.totalCiviliansSaved >= 10) unlock('lifesaver_10');
   if (nextStats.totalPetsSaved >= 5) unlock('pet_protector_5');
-  if (nextStats.totalPetsSaved >= 10) unlock('wildlife_guardian');
   if (nextStats.totalFiresExtinguished >= 25) unlock('fire_suppressor_25');
+
   if (missionId === 'vertical_10' && stageNumber >= catalog.totalStages) {
     unlock('vertical_10_hero');
   }
-  if (missionId === 'forest_fire' && stageNumber >= catalog.totalStages) {
-    unlock('forest_park_hero');
+
+  if (missionId === 'forest_fire') {
+    const completedForestCount = Object.values(nextStages).filter(s => s.completed).length;
+    if (completedForestCount >= 3) {
+      unlock('forest_ranger');
+    }
+    if (petsSaved > 0 || nextStats.totalPetsSaved >= 10) {
+      unlock('wildlife_guardian');
+    }
+    if (stageNumber >= catalog.totalStages) {
+      unlock('forest_park_hero');
+    }
+  } else if (nextStats.totalPetsSaved >= 10) {
+    unlock('wildlife_guardian');
+  }
+
+  if (missionId === 'flood_rescue') {
+    const completedFloodCount = Object.values(nextStages).filter(s => s.completed).length;
+    if (completedFloodCount >= 3) {
+      unlock('flood_captain');
+    }
+    if (stageNumber >= 4) {
+      unlock('flood_arcangel');
+    }
+    if (stageNumber >= catalog.totalStages) {
+      unlock('flood_hero');
+    }
+  }
+
+  // Cross-mission achievements
+  const verticalSummary = getMissionProgressSummary(candidateSave, 'vertical_10');
+  const forestSummary = getMissionProgressSummary(candidateSave, 'forest_fire');
+  const floodSummary = getMissionProgressSummary(candidateSave, 'flood_rescue');
+
+  if (
+    verticalSummary.completedStages >= 1 &&
+    forestSummary.completedStages >= 1 &&
+    floodSummary.completedStages >= 1
+  ) {
+    unlock('triad_responder');
+  }
+
+  const totalHubStars = getTotalHubStars(candidateSave).earned;
+  if (totalHubStars >= 45) {
+    unlock('hero_all_stars_45');
+  }
+
+  if (
+    verticalSummary.completedStages >= verticalSummary.totalStages &&
+    forestSummary.completedStages >= forestSummary.totalStages &&
+    floodSummary.completedStages >= floodSummary.totalStages
+  ) {
+    unlock('master_all_missions');
   }
 
   const nextSave: HubSaveState = {

@@ -258,7 +258,7 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({ onClose, i
               </div>
 
               {/* Missão 3: Operação Enchentes */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-cyan-950/60 via-slate-950/90 to-sky-950/50 border border-cyan-500/40 shadow-lg space-y-2">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-cyan-950/60 via-slate-950/90 to-sky-950/50 border border-cyan-500/50 shadow-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🚤</span>
@@ -267,16 +267,16 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({ onClose, i
                         Missão 3: Operação Enchentes
                       </h3>
                       <span className="text-[11px] text-sky-300 font-semibold">
-                        Resgate Aquático e Aéreo · 10 Setores (Em Breve no Hub)
+                        Resgate Aquático e Aéreo · 10 Setores (Ativa)
                       </span>
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold text-[10px] uppercase">
-                    Em Breve
+                    10 Setores
                   </span>
                 </div>
                 <p className="text-slate-300 leading-relaxed">
-                  Inundações repentinas tomaram a cidade e comunidades ribeirinhas. Pilote o bote de resgate rápido e o Helicóptero Arcanjo com guincho para salvar famílias ilhadas em telhados, carros submersos e ilhas fluviais sob forte correnteza.
+                  Inundações repentinas tomaram a cidade e comunidades ribeirinhas. Pilote o Bote Inflável CBMMG e o Helicóptero Arcanjo com guincho para salvar famílias e animais ilhados em carros afundando, casas, telhados e ilhas fluviais sob forte correnteza, desembarcando todos nos Abrigos Seguros (H)!
                 </p>
               </div>
             </div>
