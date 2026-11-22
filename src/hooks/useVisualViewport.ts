@@ -20,7 +20,9 @@ export function useVisualViewport() {
       document.documentElement.style.setProperty('--app-height', `${height}px`);
       document.documentElement.style.setProperty('--app-width', `${width}px`);
 
-      setViewport({ width, height });
+      setViewport((prev) =>
+        prev.width === width && prev.height === height ? prev : { width, height }
+      );
     };
 
     update();

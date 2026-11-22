@@ -91,6 +91,7 @@ export default function App() {
   // HUD stats from Phaser engine
   const [hudState, setHudState] = useState<GameHUDState>(INITIAL_HUD_STATE);
   const hudStateRef = useRef<GameHUDState>(INITIAL_HUD_STATE);
+  const lastHudCommitTimeRef = useRef<number>(0);
 
   const phaserRef = useRef<PhaserGameRef>(null);
 
@@ -166,9 +167,78 @@ export default function App() {
   }, []);
 
   const handleHudUpdate = useCallback((hud: GameHUDState) => {
+    const prev = hudStateRef.current;
+
+    const discreteChanged =
+      hud.missionId !== prev.missionId ||
+      hud.currentFloor !== prev.currentFloor ||
+      hud.timeRemaining !== prev.timeRemaining ||
+      hud.score !== prev.score ||
+      hud.rescuedCivilians !== prev.rescuedCivilians ||
+      hud.totalCivilians !== prev.totalCivilians ||
+      hud.rescuedPets !== prev.rescuedPets ||
+      hud.totalPets !== prev.totalPets ||
+      hud.extinguishedFires !== prev.extinguishedFires ||
+      hud.totalFires !== prev.totalFires ||
+      hud.closedGasValves !== prev.closedGasValves ||
+      hud.cutElectricPanels !== prev.cutElectricPanels ||
+      hud.exitUnlocked !== prev.exitUnlocked ||
+      hud.promptActionText !== prev.promptActionText ||
+      hud.contextualAction !== prev.contextualAction ||
+      hud.smokeAlert !== prev.smokeAlert ||
+      hud.refillNeeded !== prev.refillNeeded ||
+      hud.activeToolId !== prev.activeToolId ||
+      hud.aboardCount !== prev.aboardCount ||
+      hud.preservedPercent !== prev.preservedPercent ||
+      hud.windLabel !== prev.windLabel ||
+      hud.vehicleLabel !== prev.vehicleLabel ||
+      (hud.extinguisher <= 0) !== (prev.extinguisher <= 0) ||
+      (hud.health <= 0) !== (prev.health <= 0) ||
+      (hud.objectives?.length ?? 0) !== (prev.objectives?.length ?? 0) ||
+      Boolean(
+        hud.objectives?.some(
+          (obj, idx) =>
+            obj.current !== prev.objectives?.[idx]?.current ||
+            obj.target !== prev.objectives?.[idx]?.target
+        )
+      );
+
+    const metersChanged =
+      hud.health !== prev.health ||
+      hud.extinguisher !== prev.extinguisher ||
+      hud.heatMeter !== prev.heatMeter;
+
+    if (!discreteChanged && !metersChanged) {
+      return;
+    }
+
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (!discreteChanged && now - lastHudCommitTimeRef.current < 80) {
+      return;
+    }
+
+    lastHudCommitTimeRef.current = now;
     hudStateRef.current = hud;
     setHudState(hud);
-    setScore(hud.score);
+    if (hud.score !== prev.score) {
+      setScore(hud.score);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((vx: number, vy: number) => {
+    phaserRef.current?.setMovement(vx, vy);
+  }, []);
+
+  const handleTouchSpray = useCallback((spraying: boolean) => {
+    phaserRef.current?.setSpraying(spraying);
+  }, []);
+
+  const handleTouchInteract = useCallback(() => {
+    phaserRef.current?.triggerInteract();
+  }, []);
+
+  const handleSelectTool = useCallback((id: string) => {
+    phaserRef.current?.setTool(id);
   }, []);
 
   const handleFloorClear = useCallback((clearedScore: number, stars: number, remainingHealth: number, maxHealth: number) => {
@@ -294,15 +364,15 @@ export default function App() {
             stageTerm={activeMission.stageTermSingular.toUpperCase()}
             totalStages={activeMission.totalStages}
             tools={activeTools}
-            onSelectTool={(id) => phaserRef.current?.setTool(id)}
+            onSelectTool={handleSelectTool}
           />
 
           {/* Mobile Ergonomic Touch Controls */}
           {gameState === 'playing' && (
             <TouchControls
-              onMove={(vx, vy) => phaserRef.current?.setMovement(vx, vy)}
-              onSpray={(spraying) => phaserRef.current?.setSpraying(spraying)}
-              onInteract={() => phaserRef.current?.triggerInteract()}
+              onMove={handleTouchMove}
+              onSpray={handleTouchSpray}
+              onInteract={handleTouchInteract}
               contextualAction={hudState.contextualAction ?? null}
               currentFloor={currentFloor}
               extinguisherPercent={hudState.extinguisher}
@@ -310,7 +380,7 @@ export default function App() {
               primaryControl={activeMission.primaryControl}
               tools={activeTools}
               activeToolId={hudState.activeToolId ?? (activeMissionId === 'flood_rescue' ? currentFloodSector.initialVehicle : 'water')}
-              onSelectTool={(id) => phaserRef.current?.setTool(id)}
+              onSelectTool={handleSelectTool}
             />
           )}
 
