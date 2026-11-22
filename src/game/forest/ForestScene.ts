@@ -113,6 +113,7 @@ export class ForestScene extends Phaser.Scene {
 
   private promptText: string | null = null;
   private contextualAction: ContextualActionType = null;
+  private wasEmptyNotified: boolean = false;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyW!: Phaser.Input.Keyboard.Key;
@@ -223,8 +224,12 @@ export class ForestScene extends Phaser.Scene {
           this.windShifted = true;
           this.currentWind = this.sectorData.shiftedWindDirection;
           const wInfo = WIND_VECTORS[this.currentWind];
-          sounds.playClick();
+          sounds.playEmergencyAlert('wind_shift');
           this.showFloatingText(this.player.x, this.player.y - 30, `🌬️ VENTO VIROU PARA ${wInfo.label.toUpperCase()}!`, '#38bdf8');
+        }
+
+        if (this.timeRemaining > 0 && this.timeRemaining <= 10) {
+          sounds.playEmergencyAlert('time_low');
         }
 
         if (this.timeRemaining <= 0) {
@@ -589,6 +594,7 @@ export class ForestScene extends Phaser.Scene {
 
     if (!isUsing) {
       this.waterParticles.emitting = false;
+      this.wasEmptyNotified = false;
       sounds.stopSpray();
       return;
     }
@@ -597,9 +603,15 @@ export class ForestScene extends Phaser.Scene {
       if (this.waterLevel <= 0) {
         this.waterParticles.emitting = false;
         sounds.stopSpray();
+        if (!this.wasEmptyNotified) {
+          this.wasEmptyNotified = true;
+          sounds.playEmptyTank();
+          this.showFloatingText(this.player.x, this.player.y - 22, '💧 BOMBA VAZIA! Encha no Riacho!', '#ef4444');
+        }
         return;
       }
 
+      this.wasEmptyNotified = false;
       this.waterParticles.emitting = true;
       sounds.startSpray();
 
@@ -611,6 +623,9 @@ export class ForestScene extends Phaser.Scene {
       this.waterParticles.particleAngle = { min: deg - 18, max: deg + 18 };
 
       this.waterLevel = Math.max(0, this.waterLevel - (delta / 1000) * 14);
+      if (this.waterLevel > 0 && this.waterLevel <= 15) {
+        sounds.playEmergencyAlert('low_resource');
+      }
       this.heatMeter = Math.max(0, this.heatMeter - (delta / 1000) * 14);
 
       const stats = CHARACTERS[this.characterId] || CHARACTERS.foguinho;
@@ -831,6 +846,7 @@ export class ForestScene extends Phaser.Scene {
           if (flammableNeighbors.length > 0) {
             const pick = flammableNeighbors[Math.floor(Math.random() * flammableNeighbors.length)];
             this.igniteCell(pick, 1);
+            sounds.playEmergencyAlert('fire_spread');
             this.showFloatingText(pick.x, pick.y - 10, '⚠️ BRASA REACENDEU!', '#ef4444');
             cell.reigniteProgress = 25;
           } else {
@@ -939,6 +955,7 @@ export class ForestScene extends Phaser.Scene {
       this.heatMeter = Math.min(100, this.heatMeter + (delta / 1000) * 26);
       const dmg = (delta / 1000) * 18 * (1 - stats.heatResistance);
       this.currentHealth = Math.max(0, this.currentHealth - dmg);
+      sounds.playHurt();
     } else if (nearFire) {
       this.heatMeter = Math.min(100, this.heatMeter + (delta / 1000) * 9);
     } else {
@@ -948,6 +965,7 @@ export class ForestScene extends Phaser.Scene {
     if (this.heatMeter >= 88) {
       const smokeDmg = (delta / 1000) * 6 * (1 - stats.heatResistance * 0.5);
       this.currentHealth = Math.max(0, this.currentHealth - smokeDmg);
+      sounds.playEmergencyAlert('heat');
     }
 
     if (this.currentHealth <= 0) {
@@ -1044,7 +1062,7 @@ export class ForestScene extends Phaser.Scene {
       if (rescue.kind === 'wildlife') {
         this.rescuedWildlifeCount++;
         this.score += 400;
-        sounds.playRescueWildlife();
+        sounds.playRescueWildlife(rescue.species);
         this.showFloatingText(rescue.x, rescue.y - 12, `+400 ${rescue.name.toUpperCase()} SALVO!`, '#facc15');
       } else {
         this.rescuedHikersCount++;
@@ -1067,6 +1085,7 @@ export class ForestScene extends Phaser.Scene {
     if (stream) {
       sounds.playRefill();
       this.waterLevel = this.maxWaterLevel;
+      this.wasEmptyNotified = false;
       this.heatMeter = Math.max(0, this.heatMeter - 30);
       this.showFloatingText(stream.x, stream.y - 16, '💧 BOMBA COSTAL 100% REABASTECIDA!', '#38bdf8');
       return;
@@ -1111,8 +1130,12 @@ export class ForestScene extends Phaser.Scene {
   private handleSectorClear(preservedPercent: number) {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
-    sounds.playFloorClear();
+    sounds.stopAllLoops();
+    if (this.sectorNumber >= 10) {
+      sounds.playGrandVictory();
+    } else {
+      sounds.playFloorClear();
+    }
 
     const timeBonus = Math.max(0, this.timeRemaining * 12);
     const preservationBonus = preservedPercent * 10;
@@ -1137,7 +1160,7 @@ export class ForestScene extends Phaser.Scene {
   private handleGameOver(reason: string) {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
+    sounds.stopAllLoops();
     sounds.playGameOver();
     this.player.setTint(0xef4444);
 
@@ -1272,7 +1295,7 @@ export class ForestScene extends Phaser.Scene {
   }
 
   public shutdown() {
-    sounds.stopSpray();
+    sounds.stopAllLoops();
     if (this.timerEvent) {
       this.timerEvent.remove(false);
     }

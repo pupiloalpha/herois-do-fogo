@@ -1,5 +1,6 @@
 import React from 'react';
-import { Smartphone, Maximize, Share2, PlusSquare, X, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Smartphone, Maximize, Share2, PlusSquare, X, ShieldCheck } from 'lucide-react';
+import { sounds } from '../audio/SoundManager';
 
 interface FullscreenGuideModalProps {
   onClose: () => void;
@@ -13,104 +14,95 @@ export const FullscreenGuideModal: React.FC<FullscreenGuideModalProps> = ({
   isFullscreen = false,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto overscroll-contain rounded-3xl border border-orange-500/40 bg-slate-900/98 p-5 sm:p-6 shadow-2xl text-left text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
+      <div className="w-full max-w-md max-h-[92dvh] rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <Maximize className="w-5 h-5 text-amber-400" />
-            <h3 className="text-base sm:text-lg font-black text-white">
-              Jogar Sem Barras do Navegador
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Maximize className="w-5 h-5 text-amber-400 shrink-0" />
+            <h3 className="text-base sm:text-lg font-bold text-white truncate">
+              Jogar em Tela Cheia
             </h3>
           </div>
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
+            aria-label="Fechar guia"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Intro */}
-        <p className="mt-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
-          Quando jogado em abas normais do navegador sem instalar, barras de endereço e guias podem ocupar parte da tela. Veja as formas fáceis de resolver:
-        </p>
+        {/* Body */}
+        <div className="p-5 overflow-y-auto overscroll-contain space-y-4 text-xs sm:text-sm text-slate-300">
+          <p className="leading-relaxed">
+            Para evitar que as barras do navegador ocupem espaço de jogo, escolha uma das opções abaixo:
+          </p>
 
-        <div className="mt-4 space-y-3.5">
-          {/* Solution 1: Fullscreen Button (Android & PC) */}
-          <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-3 sm:p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
-                <Maximize className="w-4 h-4 text-amber-400" /> Opção 1: Modo Tela Cheia
-              </span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">
-                Android / PC
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-normal">
-              Oculte instantaneamente todas as barras e guias com um único toque usando a API nativa de Fullscreen:
+          <div className="pb-4 border-b border-white/10 space-y-2">
+            <p className="font-semibold text-amber-300 flex items-center gap-1.5">
+              <Maximize className="w-4 h-4" />
+              <span>Android e Computador · Tela Cheia</span>
+            </p>
+            <p className="text-xs leading-relaxed">
+              Oculta as barras e guias imediatamente com um toque.
             </p>
             {onEnterFullscreen && (
               <button
+                type="button"
                 onClick={() => {
+                  sounds.playClick();
                   onEnterFullscreen();
                   onClose();
                 }}
-                className="w-full mt-1 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition"
+                className="w-full min-h-[44px] mt-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
               >
                 <Maximize className="w-4 h-4" />
-                <span>{isFullscreen ? 'VOCÊ JÁ ESTÁ EM TELA CHEIA' : 'ATIVAR TELA CHEIA AGORA'}</span>
+                <span>{isFullscreen ? 'Tela Cheia já Ativa' : 'Ativar Tela Cheia'}</span>
               </button>
             )}
           </div>
 
-          {/* Solution 2: iOS Safari / Add to Home Screen */}
-          <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-3 sm:p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-wider">
-                <Smartphone className="w-4 h-4 text-cyan-400" /> Opção 2: Tela de Início (PWA)
-              </span>
-              <span className="text-[10px] bg-cyan-500/20 text-cyan-300 font-bold px-2 py-0.5 rounded-full">
-                iPhone / iPad / Todos
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-normal">
-              No Safari da Apple, o sistema não permite Fullscreen em abas comuns. Mas adicionando à tela de início, ele abre como app autônomo sem nenhuma barra:
+          <div className="pb-4 border-b border-white/10 space-y-2">
+            <p className="font-semibold text-sky-300 flex items-center gap-1.5">
+              <Smartphone className="w-4 h-4" />
+              <span>iPhone e iPad · Tela de Início</span>
             </p>
-            <div className="space-y-1.5 text-[11px] sm:text-xs text-slate-200 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-[10px] shrink-0">1</span>
-                <span>Toque no ícone de <strong>Compartilhar</strong> <Share2 className="w-3 h-3 inline text-cyan-400" /> no Safari</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-[10px] shrink-0">2</span>
-                <span>Escolha <strong>Adicionar à Tela de Início</strong> <PlusSquare className="w-3 h-3 inline text-cyan-400" /></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-[10px] shrink-0">3</span>
-                <span>Abra pelo novo ícone criado: 100% de tela cheia definitiva!</span>
-              </div>
-            </div>
+            <ol className="space-y-1.5 text-xs text-slate-200">
+              <li>1. Toque em <strong>Compartilhar</strong> <Share2 className="w-3 h-3 inline text-sky-400" /> no Safari.</li>
+              <li>2. Escolha <strong>Adicionar à Tela de Início</strong> <PlusSquare className="w-3 h-3 inline text-sky-400" />.</li>
+              <li>3. Abra pelo ícone instalado para jogar offline e sem barras.</li>
+            </ol>
           </div>
 
-          {/* Solution 3: In-game Controls Elevation Button */}
-          <div className="rounded-2xl border border-slate-700/80 bg-slate-950/70 p-3 sm:p-4 space-y-1.5">
-            <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Opção 3: Botão [▲ Elevar Controles]
-            </span>
-            <p className="text-xs text-slate-300 leading-normal">
-              Se preferir continuar no navegador, implementamos uma <strong>área de segurança inteligente</strong> e o botão <strong>[▲ Elevar]</strong> no centro inferior, que levanta o joystick e botões para ficarem acima de qualquer barra do seu celular.
+          <div className="space-y-1.5">
+            <p className="font-semibold text-emerald-300 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Ajuste manual de controles</span>
+            </p>
+            <p className="text-xs leading-relaxed">
+              No menu de Pausa no celular, você também pode alternar <strong>Elevar Controles</strong> para manter os botões acima da barra inferior.
             </p>
           </div>
         </div>
 
-        {/* Footer close button */}
-        <button
-          onClick={onClose}
-          className="mt-5 w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition"
-        >
-          Entendi, vamos jogar!
-        </button>
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-white/10 bg-slate-950/40 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs sm:text-sm transition cursor-pointer"
+          >
+            Fechar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -122,6 +122,7 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
         if (gameState === 'playing') {
+          sounds.stopAllLoops();
           setGameState('paused');
         } else if (gameState === 'paused') {
           setGameState('playing');
@@ -130,6 +131,13 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState]);
+
+  // Ensure continuous audio loops stop whenever leaving active gameplay
+  useEffect(() => {
+    if (gameState !== 'playing') {
+      sounds.stopAllLoops();
+    }
   }, [gameState]);
 
   // Launch a mission stage from Hub
@@ -153,6 +161,7 @@ export default function App() {
   }, [isFullscreenSupported, isFullscreen, isStandalone, enterFullscreen]);
 
   const handleStartFloor = useCallback(() => {
+    sounds.playMissionStart();
     setGameState('playing');
   }, []);
 
@@ -213,6 +222,7 @@ export default function App() {
   }, []);
 
   const handleReturnHome = useCallback(() => {
+    sounds.stopAllLoops();
     setNewlyUnlockedMedals([]);
     setGameState('title');
   }, []);

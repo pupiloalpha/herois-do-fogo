@@ -481,6 +481,10 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    if (this.timeRemaining > 0 && this.timeRemaining <= 10) {
+      sounds.playEmergencyAlert('time_low');
+    }
+
     if (this.timeRemaining <= 0) {
       this.handleGameOver('Tempo esgotado! O edifício foi tomado pelas chamas.');
     }
@@ -564,6 +568,10 @@ export class GameScene extends Phaser.Scene {
       // Emit high-pressure foam/water particles
       this.waterParticles.emitParticleAt(sprayOriginX, sprayOriginY, 3);
       sounds.startSpray();
+
+      if (this.extinguisher > 0 && this.extinguisher <= 15) {
+        sounds.playEmergencyAlert('low_resource');
+      }
 
       // Check hits against fires and dissipate nearby smoke
       this.checkSprayAgainstFires(sprayOriginX, sprayOriginY, sprayAngle, dt * stats.extinguishPower);
@@ -707,6 +715,7 @@ export class GameScene extends Phaser.Scene {
       this.spreadFiresSpawned++;
       this.totalFiresCount++;
       this.sparkParticles.emitParticleAt(nx, ny, 8);
+      sounds.playEmergencyAlert('fire_spread');
       this.showFloatingText(nx, ny - 10, '🔥 Fogo se espalhou!', '#fb923c');
       break;
     }
@@ -787,7 +796,7 @@ export class GameScene extends Phaser.Scene {
         const dmg = (30 * (1 - stats.heatResistance) * shieldMultiplier) * dt;
         this.currentHealth -= dmg;
         this.cameras.main.shake(60, 0.003);
-        if (Math.random() < 0.08) sounds.playHurt();
+        sounds.playHurt();
       } else if (dist < f.radius + 80) {
         ambientHeat += (1 - dist / (f.radius + 80)) * 25;
       }
@@ -843,7 +852,7 @@ export class GameScene extends Phaser.Scene {
       const suffocateDmg = (20 * (1 - stats.heatResistance)) * dt;
       this.currentHealth -= suffocateDmg;
       this.cameras.main.shake(80, 0.004);
-      if (Math.random() < 0.06) sounds.playWarning();
+      sounds.playEmergencyAlert('smoke');
     }
 
     if (this.currentHealth <= 0) {
@@ -1024,7 +1033,7 @@ export class GameScene extends Phaser.Scene {
     if (civiliansDone && petsDone && gasDone && electricDone && firesDone) {
       if (!this.exitUnlocked) {
         this.exitUnlocked = true;
-        sounds.playClick();
+        sounds.playExitUnlocked();
         this.showFloatingText(this.floorData.exitDoor.x, this.floorData.exitDoor.y, 'SAÍDA LIBERADA! AVANCE!', '#22c55e');
 
         // Flash exit door
@@ -1045,8 +1054,12 @@ export class GameScene extends Phaser.Scene {
   private handleFloorClear() {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
-    sounds.playFloorClear();
+    sounds.stopAllLoops();
+    if (this.floorNumber >= 10) {
+      sounds.playGrandVictory();
+    } else {
+      sounds.playFloorClear();
+    }
 
     // Time bonus
     const timeBonus = Math.max(0, this.timeRemaining * 15);
@@ -1070,7 +1083,7 @@ export class GameScene extends Phaser.Scene {
   private handleGameOver(reason: string) {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
+    sounds.stopAllLoops();
     sounds.playGameOver();
     this.player.setTint(0xef4444);
 
@@ -1159,7 +1172,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   public shutdown() {
-    sounds.stopSpray();
+    sounds.stopAllLoops();
     if (this.timerEvent) {
       this.timerEvent.remove(false);
     }

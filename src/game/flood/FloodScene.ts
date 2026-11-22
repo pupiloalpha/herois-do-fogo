@@ -191,6 +191,9 @@ export class FloodScene extends Phaser.Scene {
       callback: () => {
         if (this.isCompleted) return;
         this.timeRemaining = Math.max(0, this.timeRemaining - 1);
+        if (this.timeRemaining > 0 && this.timeRemaining <= 10) {
+          sounds.playEmergencyAlert('time_low');
+        }
         if (this.timeRemaining <= 0) {
           this.handleGameOver('O nível das águas subiu além do limite antes da evacuação total!');
         }
@@ -199,7 +202,7 @@ export class FloodScene extends Phaser.Scene {
     });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      sounds.stopSpray();
+      this.shutdown();
     });
 
     this.syncHUD();
@@ -419,7 +422,7 @@ export class FloodScene extends Phaser.Scene {
         const stats = CHARACTERS[this.characterId] || CHARACTERS.foguinho;
         const dmg = Math.max(2, Math.round(5 * (1 - stats.heatResistance * 0.5)));
         this.currentHealth = Math.max(0, this.currentHealth - dmg);
-        sounds.playClick();
+        sounds.playEmergencyAlert('hazard');
       }
     });
 
@@ -603,11 +606,18 @@ export class FloodScene extends Phaser.Scene {
     const dt = delta / 1000;
     if (usingTurbo) {
       this.fuelLevel = Math.max(0, this.fuelLevel - dt * 16);
-    } else if (mag > 0.1) {
-      this.fuelLevel = Math.max(0, this.fuelLevel - dt * 1.4);
-    } else if (this.fuelLevel < 18) {
-      // Reserve emergency trickle recovery when drifting idle so player never gets stranded
-      this.fuelLevel = Math.min(18, this.fuelLevel + dt * 3.5);
+      sounds.startTurbo(isHeli);
+      if (this.fuelLevel > 0 && this.fuelLevel <= 15) {
+        sounds.playEmergencyAlert('low_resource');
+      }
+    } else {
+      sounds.stopTurbo();
+      if (mag > 0.1) {
+        this.fuelLevel = Math.max(0, this.fuelLevel - dt * 1.4);
+      } else if (this.fuelLevel < 18) {
+        // Reserve emergency trickle recovery when drifting idle so player never gets stranded
+        this.fuelLevel = Math.min(18, this.fuelLevel + dt * 3.5);
+      }
     }
 
     // Current / Wind push
@@ -661,6 +671,10 @@ export class FloodScene extends Phaser.Scene {
       if (spot.sinkBarFill) {
         spot.sinkBarFill.width = Math.max(2, 40 * ratio);
         spot.sinkBarFill.setFillStyle(ratio < 0.3 ? 0xef4444 : ratio < 0.6 ? 0xf97316 : 0x38bdf8);
+      }
+
+      if (spot.sinkRemaining > 0 && spot.sinkRemaining <= 15) {
+        sounds.playEmergencyAlert('sinking');
       }
 
       if (spot.sinkRemaining <= 0) {
@@ -841,8 +855,21 @@ export class FloodScene extends Phaser.Scene {
 
     if (this.activeVehicle === 'helicopter') {
       sounds.playRescueWinch();
-    } else {
+    } else if (takePeople > 0) {
       sounds.playRescueCivilian();
+    }
+
+    if (takePet > 0) {
+      const petKind = spot.spawn.petType === 'cat' ? 'cat' : 'dog';
+      if (takePeople > 0 || this.activeVehicle === 'helicopter') {
+        this.time.delayedCall(180, () => {
+          if (!this.isCompleted) {
+            sounds.playRescuePet(petKind);
+          }
+        });
+      } else {
+        sounds.playRescuePet(petKind);
+      }
     }
 
     if (spot.remainingVictims <= 0 && !spot.remainingPet) {
@@ -1000,8 +1027,12 @@ export class FloodScene extends Phaser.Scene {
   private handleSectorClear() {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
-    sounds.playFloorClear();
+    sounds.stopAllLoops();
+    if (this.sectorNumber >= 10) {
+      sounds.playGrandVictory();
+    } else {
+      sounds.playFloorClear();
+    }
 
     const timeBonus = Math.max(0, this.timeRemaining * 14);
     this.score += timeBonus;
@@ -1023,7 +1054,7 @@ export class FloodScene extends Phaser.Scene {
   private handleGameOver(reason: string) {
     if (this.isCompleted) return;
     this.isCompleted = true;
-    sounds.stopSpray();
+    sounds.stopAllLoops();
     sounds.playGameOver();
     this.player.setTint(0xef4444);
 
@@ -1143,5 +1174,12 @@ export class FloodScene extends Phaser.Scene {
       currentLabel: this.sectorData.currentLabel,
       activeToolId: this.activeVehicle,
     });
+  }
+
+  public shutdown() {
+    sounds.stopAllLoops();
+    if (this.timerEvent) {
+      this.timerEvent.remove(false);
+    }
   }
 }

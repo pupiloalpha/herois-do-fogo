@@ -5,6 +5,7 @@ import type { ForestScene as ForestSceneType } from './forest/ForestScene';
 import type { FloodScene as FloodSceneType } from './flood/FloodScene';
 import { CharacterId, GameHUDState } from './types';
 import { MissionId } from '../hub/types';
+import { sounds } from '../audio/SoundManager';
 
 type ActiveSceneInstance = GameSceneType | ForestSceneType | FloodSceneType;
 
@@ -73,6 +74,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
     },
     restartFloor: () => {
       if (gameRef.current && sceneRef.current) {
+        sounds.stopAllLoops();
         sceneRef.current.scene.restart({
           characterId,
           floorNumber,
@@ -181,6 +183,7 @@ export const PhaserGame = forwardRef<PhaserGameRef, PhaserGameProps>(({
     return () => {
       isCancelled = true;
       resizeCleanup?.();
+      sounds.stopAllLoops();
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;

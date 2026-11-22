@@ -1,8 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { FloorData } from '../game/types';
 import { ForestSectorData, WindDirection } from '../game/forest/forestTypes';
 import { FloodSectorData } from '../game/flood/floodTypes';
-import { Radio, Users, Flame, AlertTriangle, Zap, CheckCircle2, Play, ChevronDown, ChevronUp, Wind, Clock, Trees, Compass } from 'lucide-react';
+import {
+  Radio,
+  Users,
+  Flame,
+  AlertTriangle,
+  Zap,
+  Play,
+  Clock,
+  Trees,
+  Compass,
+  ArrowLeft,
+} from 'lucide-react';
 import { sounds } from '../audio/SoundManager';
 
 interface FloorBriefingModalProps {
@@ -17,15 +28,20 @@ interface FloorBriefingModalProps {
 }
 
 const WIND_NAMES: Record<WindDirection, string> = {
-  N: 'Norte (⬆️)',
-  NE: 'Nordeste (↗️)',
-  E: 'Leste (➡️)',
-  SE: 'Sudeste (↘️)',
-  S: 'Sul (⬇️)',
-  SW: 'Sudoeste (↙️)',
-  W: 'Oeste (⬅️)',
-  NW: 'Noroeste (↖️)',
+  N: 'Norte',
+  NE: 'Nordeste',
+  E: 'Leste',
+  SE: 'Sudeste',
+  S: 'Sul',
+  SW: 'Sudoeste',
+  W: 'Oeste',
+  NW: 'Noroeste',
 };
+
+function formatStageTerm(term: string): string {
+  const clean = term.trim().toLowerCase();
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+}
 
 export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
   floor,
@@ -37,9 +53,6 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
   onStartFloor,
   onBackToHub,
 }) => {
-  const [showFullLore, setShowFullLore] = useState(false);
-  const [showMobileDetails, setShowMobileDetails] = useState(false);
-
   const stageNumber = floodSector
     ? floodSector.sectorNumber
     : forestSector
@@ -75,10 +88,10 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
     ? floodSector.rescueSpots.reduce((sum, spot) => sum + spot.victims, 0)
     : 0;
   const floodTotalPets = floodSector
-    ? floodSector.rescueSpots.filter(spot => spot.hasPet).length
+    ? floodSector.rescueSpots.filter((spot) => spot.hasPet).length
     : 0;
   const floodSinkingCount = floodSector
-    ? floodSector.rescueSpots.filter(spot => spot.kind === 'sinking_car').length
+    ? floodSector.rescueSpots.filter((spot) => spot.kind === 'sinking_car').length
     : 0;
 
   useEffect(() => {
@@ -93,312 +106,210 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onStartFloor]);
 
+  const formattedTerm = formatStageTerm(stageTerm);
+
+  const accentText = floodSector
+    ? 'text-sky-300'
+    : forestSector
+      ? 'text-emerald-300'
+      : 'text-amber-300';
+
+  const primaryButtonClass = floodSector
+    ? 'bg-sky-400 hover:bg-sky-300 text-slate-950'
+    : forestSector
+      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+      : 'bg-orange-500 hover:bg-orange-400 text-slate-950';
+
+  const tacticalNote = floodSector
+    ? `Use Espaço (Turbo) na correnteza, [E] para resgatar e desembarque no Abrigo (H).${
+        floodSector.electricPoles.length > 0
+          ? ` Atenção a ${floodSector.electricPoles.length} poste(s) energizado(s).`
+          : ''
+      }`
+    : forestSector
+      ? `Ferramentas [1] Aceiro · [2] Abafador · [3] Água · [4] Pá para brasas.${
+          forestSector.streams.length > 0
+            ? ` ${forestSector.streams.length} riacho(s) disponível(is) para recarga.`
+            : ''
+        }`
+      : `Use o jato para dissipar fumaça tóxica.${
+          floor.refillStations.length > 0
+            ? ` ${floor.refillStations.length} hidrante(s) disponível(is) para recarga.`
+            : ''
+        }`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in select-none">
-      <div className={`w-full max-w-xl max-h-[92dvh] flex flex-col rounded-3xl border bg-slate-900/98 shadow-2xl text-white relative overflow-hidden ${floodSector ? 'border-cyan-500/50' : forestSector ? 'border-emerald-500/50' : 'border-orange-500/50'}`}>
-        {/* Top Header */}
-        <div className="flex items-center justify-between p-3.5 sm:p-5 pb-2.5 sm:pb-3 border-b border-slate-800 shrink-0 bg-slate-950/60">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className={`px-2.5 sm:px-3 py-1 rounded-xl text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shrink-0 ${floodSector ? 'bg-cyan-400' : forestSector ? 'bg-emerald-500' : 'bg-orange-600'}`}>
-              {stageTerm} {stageNumber}/{totalStages}
-            </span>
-            <span className={`text-xs sm:text-sm font-bold truncate ${floodSector ? 'text-cyan-400' : forestSector ? 'text-emerald-400' : 'text-orange-400'}`}>
-              {missionTitle ? `${missionTitle} · ${stageSubtitle}` : stageSubtitle}
-            </span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
+      <div className="w-full max-w-lg max-h-[92dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10 shrink-0">
+          <div className="min-w-0">
+            <p className={`text-xs font-semibold truncate ${accentText}`}>
+              {missionTitle ? `${missionTitle} · ` : ''}
+              {formattedTerm} {stageNumber}/{totalStages}
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-white truncate mt-0.5">
+              {stageName}
+            </h2>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-              <Radio className="w-4 h-4 text-emerald-400" />
-              <span>CBMMG 193</span>
-            </div>
-            {onBackToHub && (
-              <button
-                type="button"
-                onClick={() => {
-                  sounds.playClick();
-                  onBackToHub();
-                }}
-                className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition"
-              >
-                Hub
-              </button>
-            )}
-          </div>
+          {onBackToHub && (
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                onBackToHub();
+              }}
+              className="min-h-[40px] px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1.5 transition shrink-0 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Hub</span>
+            </button>
+          )}
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto overscroll-contain flex-1 p-4 sm:p-6 space-y-3.5 sm:space-y-4">
-          {/* Stage Title + Short Summary */}
-          <div>
-            <h2 className="text-base sm:text-2xl font-black text-white leading-tight">{stageName}</h2>
-            <p className="mt-1 text-xs sm:text-sm text-slate-300 leading-relaxed font-medium md:hidden line-clamp-2">
-              {stageDescription}
-            </p>
-            <p className="mt-1 text-sm text-slate-300 leading-relaxed font-medium hidden md:block">
-              {showFullLore || stageDescription.length <= 105 ? stageDescription : (
-                <>
-                  {stageDescription.slice(0, 100)}...{' '}
-                  <button
-                    onClick={() => setShowFullLore(true)}
-                    className={`font-bold underline ml-1 ${floodSector ? 'text-cyan-400 hover:text-cyan-300' : forestSector ? 'text-emerald-400 hover:text-emerald-300' : 'text-orange-400 hover:text-orange-300'}`}
-                  >
-                    Ler mais
-                  </button>
-                </>
-              )}
-            </p>
-          </div>
-
-          {/* Compact Missions Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs sm:text-sm font-black text-slate-300 uppercase tracking-wider">
-                {floodSector || forestSector ? 'Metas do Setor' : 'Metas do Andar'}
-              </h3>
-              <span className="text-xs text-amber-400 font-mono tabular-nums font-bold flex items-center gap-1">
+        <div className="overflow-y-auto overscroll-contain flex-1 px-5 py-4 space-y-4">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+              <span className="truncate">{stageSubtitle}</span>
+              <span className="font-mono tabular-nums font-semibold text-amber-300 flex items-center gap-1 shrink-0">
                 <Clock className="w-3.5 h-3.5" />
                 {timeLimitSeconds}s
               </span>
             </div>
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {stageDescription}
+            </p>
+          </div>
+
+          {/* Concise Objectives Strip */}
+          <div className="border-y border-white/10 py-3">
+            <h3 className="text-xs font-semibold text-slate-400 mb-2">
+              {floodSector || forestSector ? 'Objetivos do setor' : 'Objetivos do andar'}
+            </h3>
 
             {floodSector ? (
-              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-cyan-500/35 text-slate-100">
-                  <span className="text-base sm:text-lg shrink-0">👥</span>
-                  <span><strong>{floodTotalPeople}</strong> pessoa(s) ilhada(s)</span>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span>👥</span>
+                  <span className="tabular-nums"><strong>{floodTotalPeople}</strong> pessoa(s)</span>
                 </div>
-
                 {floodTotalPets > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-amber-500/35 text-slate-100">
-                    <span className="text-base sm:text-lg shrink-0">🐾</span>
-                    <span><strong>{floodTotalPets}</strong> animal(is)</span>
+                  <div className="flex items-center gap-2">
+                    <span>🐾</span>
+                    <span className="tabular-nums"><strong>{floodTotalPets}</strong> animal(is)</span>
                   </div>
                 )}
-
                 {floodSinkingCount > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-rose-500/45 text-slate-100">
-                    <span className="text-base sm:text-lg shrink-0">🚗</span>
-                    <span><strong>{floodSinkingCount}</strong> carro(s) afundando</span>
+                  <div className="flex items-center gap-2 text-rose-300">
+                    <span>🚗</span>
+                    <span className="tabular-nums"><strong>{floodSinkingCount}</strong> carro(s) afundando</span>
                   </div>
                 )}
-
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-sky-500/35 text-slate-100">
-                  <span className="text-base sm:text-lg shrink-0">
-                    {floodSector.vehiclePolicy === 'helicopter' ? '🚁' : floodSector.vehiclePolicy === 'mixed' ? '🚤🚁' : '🚤'}
+                <div className="flex items-center gap-2">
+                  <span>
+                    {floodSector.vehiclePolicy === 'helicopter' ? '🚁' : floodSector.vehiclePolicy === 'mixed' ? '🚤' : '🚤'}
                   </span>
                   <span className="truncate">
                     {floodSector.vehiclePolicy === 'mixed'
                       ? 'Bote + Arcanjo'
                       : floodSector.vehiclePolicy === 'helicopter'
                         ? 'Helicóptero Arcanjo'
-                        : 'Bote Inflável (cap. 3)'}
+                        : 'Bote (cap. 3)'}
                   </span>
                 </div>
-
-                <div className="col-span-2 flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
-                  <span className="text-base sm:text-lg shrink-0">🌊</span>
-                  <span>{floodSector.currentLabel} · {floodSector.shelters.length} Abrigo(s) Seguro(s)</span>
+                <div className="col-span-2 text-xs text-slate-400 pt-0.5">
+                  {floodSector.currentLabel} · {floodSector.shelters.length} abrigo(s) seguro(s)
                 </div>
               </div>
             ) : forestSector ? (
-              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-200">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-orange-400 shrink-0" />
+                  <span className="tabular-nums"><strong>{forestSector.initialFires.length}</strong> foco(s)</span>
+                </div>
                 {forestSector.wildlife.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-amber-500/35 text-slate-100">
-                    <span className="text-base sm:text-lg shrink-0">🦊</span>
-                    <span><strong>{forestSector.wildlife.length}</strong> animal(is) silvestre(s)</span>
+                  <div className="flex items-center gap-2">
+                    <span>🦊</span>
+                    <span className="tabular-nums"><strong>{forestSector.wildlife.length}</strong> fauna</span>
                   </div>
                 )}
-
                 {forestSector.hikers.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
-                    <span className="text-base sm:text-lg shrink-0">🥾</span>
-                    <span><strong>{forestSector.hikers.length}</strong> trilheiro(s)</span>
+                  <div className="flex items-center gap-2">
+                    <span>🥾</span>
+                    <span className="tabular-nums"><strong>{forestSector.hikers.length}</strong> trilheiro(s)</span>
                   </div>
                 )}
-
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-orange-500/35 text-slate-100">
-                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 shrink-0" />
-                  <span><strong>{forestSector.initialFires.length}</strong> foco(s) + brasas</span>
+                <div className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Vento {WIND_NAMES[forestSector.windDirection]}</span>
                 </div>
-
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-sky-500/35 text-slate-100">
-                  <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 shrink-0" />
-                  <span className="truncate">Vento <strong>{WIND_NAMES[forestSector.windDirection]}</strong></span>
-                </div>
-
-                <div className="col-span-2 flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
-                  <Trees className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
-                  <span>
-                    Preservar no mínimo <strong>{100 - forestSector.maxBurnPercent}%</strong> da mata do setor
+                <div className="col-span-2 flex items-center gap-2 text-xs text-emerald-300 pt-0.5">
+                  <Trees className="w-3.5 h-3.5 shrink-0" />
+                  <span className="tabular-nums">
+                    Preservar ao menos <strong>{100 - forestSector.maxBurnPercent}%</strong> da mata
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-200">
                 {floor.civilians.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
-                    <span><strong>{floor.civilians.length}</strong> pessoa(s)</span>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="tabular-nums"><strong>{floor.civilians.length}</strong> pessoa(s)</span>
                   </div>
                 )}
-
                 {floor.pets.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-yellow-500/35 text-slate-100">
-                    <span className="text-base sm:text-lg shrink-0">🐾</span>
-                    <span><strong>{floor.pets.length}</strong> animal(is)</span>
+                  <div className="flex items-center gap-2">
+                    <span>🐾</span>
+                    <span className="tabular-nums"><strong>{floor.pets.length}</strong> animal(is)</span>
                   </div>
                 )}
-
-                <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-orange-500/35 text-slate-100">
-                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 shrink-0" />
-                  <span><strong>{floor.fires.length}</strong> foco(s) fogo</span>
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-orange-400 shrink-0" />
+                  <span className="tabular-nums"><strong>{floor.fires.length}</strong> foco(s)</span>
                 </div>
-
                 {floor.gasValves.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-purple-500/35 text-slate-100">
-                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
-                    <span><strong>{floor.gasValves.length}</strong> válvula(s) gás</span>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span className="tabular-nums"><strong>{floor.gasValves.length}</strong> válvula(s) gás</span>
                   </div>
                 )}
-
                 {floor.electricPanels.length > 0 && (
-                  <div className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-800/80 border border-cyan-500/35 text-slate-100">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 shrink-0" />
-                    <span><strong>{floor.electricPanels.length}</strong> quadro(s)</span>
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span className="tabular-nums"><strong>{floor.electricPanels.length}</strong> quadro(s)</span>
                   </div>
                 )}
-
-                <div className="hidden md:flex items-center gap-2 p-3 rounded-xl bg-slate-800/80 border border-emerald-500/35 text-slate-100">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                  <span>Tempo: <strong>{floor.timeLimitSeconds}s</strong></span>
-                </div>
               </div>
             )}
           </div>
 
-          {/* Mobile Details Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setShowMobileDetails(prev => !prev)}
-            className="md:hidden w-full py-2 px-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs font-semibold text-slate-300 flex items-center justify-between"
-          >
-            <span>
-              {floodSector
-                ? 'Detalhes táticos (Rádio, Turbo e Abrigo)'
-                : forestSector
-                  ? 'Detalhes táticos (Rádio, Ferramentas e Riachos)'
-                  : 'Detalhes da ocorrência (Rádio e Hidrante)'}
-            </span>
-            {showMobileDetails ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-
-          {/* Secondary Info: Always shown on Desktop (md+), collapsible on Mobile */}
-          <div className={`${showMobileDetails ? 'block' : 'hidden'} md:block space-y-3`}>
-            {/* Radio Dispatch Message */}
-            <div className="bg-slate-950/90 border border-amber-500/30 p-3 sm:p-3.5 rounded-2xl text-xs sm:text-sm text-amber-200/95 font-mono flex items-start gap-2.5">
-              <span className="text-lg shrink-0">📻</span>
-              <p className="leading-snug italic font-medium">"{stageRadio}"</p>
+          {/* Radio Dispatch + Single Tactical Note */}
+          <div className="space-y-2.5 text-xs">
+            <div className="flex items-start gap-2.5 text-amber-200/90">
+              <Radio className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <p className="italic leading-relaxed">"{stageRadio}"</p>
             </div>
-
-            {floodSector ? (
-              <>
-                <div className="bg-cyan-950/40 border border-cyan-500/35 p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm text-cyan-100 space-y-1">
-                  <strong className="text-cyan-300 block font-black">
-                    Manual de Navegação e Guincho CBMMG
-                  </strong>
-                  <p className="text-[11px] sm:text-xs text-slate-200 leading-relaxed">
-                    Use <strong>[ESPAÇO] / Turbo</strong> para vencer a correnteza, aperte <strong>[E] / [AÇÃO]</strong> perto dos ilhados para embarcar ou içar, e aproxime-se do <strong>Abrigo Seguro (H)</strong> para desembarcar, reparar e reabastecer!
-                  </p>
-                </div>
-
-                {floodSector.electricPoles.length > 0 && (
-                  <div className="bg-amber-950/40 border border-amber-500/35 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-amber-200">
-                    <span className="text-xl shrink-0">⚡</span>
-                    <div>
-                      <strong className="text-amber-300 block text-xs sm:text-sm font-black">
-                        Postes Energizados na Água ({floodSector.electricPoles.length})
-                      </strong>
-                      <span>Mantenha distância dos halos amarelos para não sofrer descargas elétricas.</span>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : forestSector ? (
-              <>
-                <div className="bg-emerald-950/35 border border-emerald-500/30 p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm text-emerald-100 space-y-1.5">
-                  <strong className="text-emerald-300 block font-black">
-                    Equipamento Florestal (Teclas 1 a 4 ou Barra Tátil)
-                  </strong>
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] sm:text-xs text-slate-200">
-                    <span>⛏️ <strong>1 Aceiro:</strong> corta a passagem do fogo</span>
-                    <span>🧹 <strong>2 Abafador:</strong> apaga sem gastar água</span>
-                    <span>💧 <strong>3 Bomba Água:</strong> jato de alto alcance</span>
-                    <span>🪣 <strong>4 Pá:</strong> enterra troncos em brasa</span>
-                  </div>
-                </div>
-
-                {forestSector.streams.length > 0 && (
-                  <div className="bg-cyan-950/40 border border-cyan-500/30 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-cyan-200">
-                    <span className="text-xl shrink-0">🚰</span>
-                    <div>
-                      <strong className="text-cyan-300 block text-xs sm:text-sm font-black">
-                        Riachos no Setor ({forestSector.streams.length})
-                      </strong>
-                      <span>Aproxime-se da água e pressione [AÇÃO] para reabastecer 100%.</span>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Smoke Hazard Callout */}
-                <div className="bg-amber-950/40 border border-amber-500/30 p-2.5 sm:p-3 rounded-2xl flex items-start gap-2.5 text-xs sm:text-sm text-amber-200">
-                  <Wind className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-amber-300 block text-xs sm:text-sm font-black">
-                      Fumaça e Calor no Local
-                    </strong>
-                    <span>
-                      Use o jato do extintor para dissipar nuvens espessas e abrir passagem.
-                    </span>
-                  </div>
-                </div>
-
-                {/* Refill Hydrant Notice */}
-                {floor.refillStations.length > 0 && (
-                  <div className="bg-cyan-950/40 border border-cyan-500/30 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-cyan-200">
-                    <span className="text-xl shrink-0">🚰</span>
-                    <div>
-                      <strong className="text-cyan-300 block text-xs sm:text-sm font-black">
-                        Hidrantes no Andar ({floor.refillStations.length})
-                      </strong>
-                      <span>Aproxime-se e use [AÇÃO] para recarregar 100% da água.</span>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            <p className="text-slate-400 leading-relaxed pl-6">
+              {tacticalNote}
+            </p>
           </div>
         </div>
 
-        {/* Bottom CTA Button */}
-        <div className="p-3.5 sm:p-5 pt-3 border-t border-slate-800 bg-slate-950/80 shrink-0">
+        {/* Footer CTA */}
+        <div className="px-5 py-4 border-t border-white/10 bg-slate-950/40 shrink-0">
           <button
+            type="button"
             onClick={() => {
               sounds.playClick();
               onStartFloor();
             }}
-            className={`w-full min-h-[48px] py-3.5 sm:py-4 rounded-2xl text-slate-950 font-black text-base sm:text-lg shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 ${
-              floodSector
-                ? 'bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400'
-                : forestSector
-                  ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500'
-                  : 'bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600'
-            }`}
+            className={`w-full min-h-[48px] py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${primaryButtonClass}`}
           >
-            <Play className="w-5 h-5 fill-slate-950 text-slate-950" />
-            <span>INICIAR {stageTerm} {stageNumber}</span>
+            <Play className="w-4 h-4 fill-current" />
+            <span>Iniciar {formattedTerm} {stageNumber}</span>
           </button>
         </div>
       </div>

@@ -29,91 +29,91 @@ function getActionMeta(action: ContextualActionType, currentFloor: number) {
       return {
         icon: '🤝',
         label: 'SALVAR',
-        classes: 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-200 text-white ring-4 ring-emerald-400/35 shadow-emerald-500/30',
+        classes: 'bg-emerald-500 border-emerald-200 text-slate-950 ring-2 ring-emerald-400/50 shadow-lg',
       };
     case 'pet_dog':
       return {
         icon: '🐶',
         label: 'RESGATAR',
-        classes: 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/35 shadow-amber-500/30',
+        classes: 'bg-amber-400 border-amber-100 text-slate-950 ring-2 ring-amber-300/50 shadow-lg',
       };
     case 'pet_cat':
       return {
         icon: '🐱',
         label: 'RESGATAR',
-        classes: 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/35 shadow-amber-500/30',
+        classes: 'bg-amber-400 border-amber-100 text-slate-950 ring-2 ring-amber-300/50 shadow-lg',
       };
     case 'wildlife':
       return {
         icon: '🦊',
         label: 'SALVAR',
-        classes: 'bg-gradient-to-br from-amber-400 to-emerald-500 border-amber-100 text-slate-950 ring-4 ring-amber-400/40 shadow-amber-500/30 animate-pulse',
+        classes: 'bg-amber-400 border-amber-100 text-slate-950 ring-2 ring-amber-300/55 shadow-lg',
       };
     case 'hiker':
       return {
         icon: '🤝',
         label: 'RESGATAR',
-        classes: 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-200 text-white ring-4 ring-emerald-400/35 shadow-emerald-500/30',
+        classes: 'bg-emerald-500 border-emerald-200 text-slate-950 ring-2 ring-emerald-400/50 shadow-lg',
       };
     case 'smoldering_log':
       return {
         icon: '🪣',
         label: 'ENTERRAR',
-        classes: 'bg-gradient-to-br from-orange-500 to-amber-600 border-amber-200 text-slate-950 ring-4 ring-orange-400/35 shadow-orange-500/30',
+        classes: 'bg-orange-400 border-amber-100 text-slate-950 ring-2 ring-orange-300/50 shadow-lg',
       };
     case 'flood_victim':
       return {
         icon: '🛟',
         label: 'RESGATAR',
-        classes: 'bg-gradient-to-br from-cyan-400 to-sky-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/45 shadow-cyan-500/35 animate-pulse',
+        classes: 'bg-sky-400 border-sky-100 text-slate-950 ring-2 ring-sky-300/55 shadow-lg',
       };
     case 'flood_shelter':
       return {
         icon: '🏥',
         label: 'ABRIGO',
-        classes: 'bg-gradient-to-br from-emerald-400 to-teal-600 border-emerald-100 text-slate-950 ring-4 ring-emerald-400/45 shadow-emerald-500/35 animate-pulse',
+        classes: 'bg-emerald-400 border-emerald-100 text-slate-950 ring-2 ring-emerald-300/55 shadow-lg',
       };
     case 'flood_swap_vehicle':
       return {
         icon: '🔄',
         label: 'VEÍCULO',
-        classes: 'bg-gradient-to-br from-sky-500 to-indigo-600 border-sky-200 text-white ring-4 ring-sky-400/40 shadow-sky-500/30',
+        classes: 'bg-sky-500 border-sky-200 text-slate-950 ring-2 ring-sky-300/50 shadow-lg',
       };
     case 'gas_valve':
       return {
         icon: '⚠️',
         label: 'FECHAR',
-        classes: 'bg-gradient-to-br from-purple-600 to-fuchsia-700 border-purple-200 text-white ring-4 ring-purple-400/35 shadow-purple-500/30',
+        classes: 'bg-purple-500 border-purple-200 text-white ring-2 ring-purple-300/50 shadow-lg',
       };
     case 'electric_panel':
       return {
         icon: '⚡',
         label: 'CORTAR',
-        classes: 'bg-gradient-to-br from-cyan-500 to-sky-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/35 shadow-cyan-500/30',
+        classes: 'bg-cyan-400 border-cyan-100 text-slate-950 ring-2 ring-cyan-300/50 shadow-lg',
       };
     case 'refill_station':
       return {
         icon: '🚰',
         label: 'RECARGA',
-        classes: 'bg-gradient-to-br from-sky-400 to-cyan-600 border-cyan-100 text-slate-950 ring-4 ring-cyan-400/45 shadow-cyan-500/40 animate-pulse',
+        classes: 'bg-sky-400 border-sky-100 text-slate-950 ring-2 ring-sky-300/55 shadow-lg',
       };
     case 'exit_door':
       return {
         icon: currentFloor === 10 ? '🚁' : '🚪',
         label: 'SAIR',
-        classes: 'bg-gradient-to-br from-emerald-400 to-green-600 border-emerald-100 text-slate-950 ring-4 ring-emerald-400/50 shadow-emerald-500/40 animate-pulse',
+        classes: 'bg-emerald-400 border-emerald-100 text-slate-950 ring-2 ring-emerald-300/60 shadow-lg',
       };
     case 'exit_locked':
       return {
         icon: '🔒',
         label: 'METAS',
-        classes: 'bg-slate-900/85 border-amber-500/60 text-amber-300',
+        classes: 'bg-slate-900/75 border-amber-400/50 text-amber-300',
       };
     default:
       return {
         icon: '🤝',
         label: 'AÇÃO',
-        classes: 'bg-slate-900/70 border-slate-600/70 text-slate-300',
+        classes: 'bg-slate-950/60 border-white/20 text-slate-200',
       };
   }
 }
@@ -141,14 +141,12 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   const sprayMinTimerRef = useRef<NodeJS.Timeout | null>(null);
   const sprayPressedRef = useRef<boolean>(false);
 
-  // Clear timers on unmount
   useEffect(() => {
     return () => {
       if (sprayMinTimerRef.current) clearTimeout(sprayMinTimerRef.current);
     };
   }, []);
 
-  // Joystick touch handlers
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (touchIdRef.current !== null) return;
@@ -201,14 +199,12 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
 
     setJoystickPos({ x: stickX, y: stickY });
 
-    // Normalize -1 to 1 vector
     const normX = stickX / maxRadius;
     const normY = stickY / maxRadius;
     setIsAutoSprinting(Math.hypot(normX, normY) >= 0.85);
     onMove(normX, normY);
   };
 
-  // Spray button triggers with guaranteed minimum burst time
   const startSpraying = () => {
     sprayPressedRef.current = true;
     setIsSpraying(true);
@@ -229,7 +225,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
   };
 
   const actionMeta = getActionMeta(contextualAction, currentFloor);
-  const activeTool = tools?.find(t => t.id === activeToolId);
+  const activeTool = tools?.find((t) => t.id === activeToolId);
   const isTurboMode = primaryControl?.label === 'TURBO';
   const usesWater = !tools || activeToolId === 'water' || isTurboMode;
   const isTankEmpty = usesWater && extinguisherPercent <= 0;
@@ -242,7 +238,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           : 'pb-[max(0.85rem,calc(env(safe-area-inset-bottom)+8px))]'
       }`}
     >
-      {/* Left: Virtual Joystick (Auto-sprints at >= 85% tilt) */}
+      {/* Left: Lightweight Frosted Virtual Joystick */}
       <div className="pointer-events-auto touch-none">
         <div
           ref={joystickBaseRef}
@@ -250,43 +246,40 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-slate-950/75 backdrop-blur-sm border-2 flex items-center justify-center shadow-2xl transition-colors ${
+          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-slate-950/55 backdrop-blur-sm border flex items-center justify-center shadow-xl transition-colors ${
             isAutoSprinting
-              ? 'border-amber-400 ring-4 ring-amber-400/25'
-              : 'border-orange-500/50 active:border-orange-400'
+              ? 'border-amber-300 ring-2 ring-amber-400/40'
+              : isDragging
+                ? 'border-orange-400/80'
+                : 'border-white/20'
           }`}
         >
-          {/* Base guide marks */}
-          <div className="absolute w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-orange-500/25" />
-          <div className="absolute top-1 text-[8px] text-orange-400/75 font-bold">▲</div>
-          <div className="absolute bottom-1 text-[8px] text-orange-400/75 font-bold">▼</div>
-          <div className="absolute left-1.5 text-[8px] text-orange-400/75 font-bold">◀</div>
-          <div className="absolute right-1.5 text-[8px] text-orange-400/75 font-bold">▶</div>
+          <div className="absolute w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10" />
 
-          {/* Stick Knob */}
           <div
-            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 shadow-xl border-2 border-amber-300 flex items-center justify-center transition-transform ${
-              isDragging ? 'scale-95 ring-4 ring-orange-500/30' : ''
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg border border-amber-200/80 flex items-center justify-center transition-transform ${
+              isDragging ? 'scale-95' : ''
             }`}
             style={{
               transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`,
               transition: isDragging ? 'none' : 'transform 0.15s ease-out',
             }}
           >
-            <span className="text-white text-xs font-black">{isAutoSprinting ? '⚡' : '🚒'}</span>
+            <span className="text-white text-sm font-bold">{isAutoSprinting ? '⚡' : '🚒'}</span>
           </div>
         </div>
       </div>
 
-      {/* Right: Optional Tool Bar + 2 Ergonomic Thumb Buttons */}
+      {/* Right: Tool Bar + 2 Tactile Thumb Buttons */}
       <div className="pointer-events-auto flex flex-col items-end gap-2 touch-none">
         {tools && tools.length > 0 && onSelectTool && (
-          <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-sm border border-slate-800 rounded-2xl p-1 shadow-xl">
-            {tools.map(tool => {
+          <div className="flex items-center gap-1 bg-slate-950/70 backdrop-blur-md border border-white/15 rounded-2xl p-1 shadow-xl">
+            {tools.map((tool) => {
               const isSelected = tool.id === activeToolId;
               return (
                 <button
                   key={tool.id}
+                  type="button"
                   onTouchStart={(e) => {
                     e.preventDefault();
                     sounds.playClick();
@@ -296,24 +289,27 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                     sounds.playClick();
                     onSelectTool(tool.id);
                   }}
-                  className={`min-w-[40px] h-10 px-2 rounded-xl flex flex-col items-center justify-center transition ${
+                  className={`min-w-[42px] h-10 px-2 rounded-xl flex flex-col items-center justify-center transition ${
                     isSelected
-                      ? 'bg-emerald-500/25 border border-emerald-400 text-white'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-emerald-400 text-slate-950 shadow-sm'
+                      : 'text-slate-300 hover:text-white'
                   }`}
                   title={tool.label}
                 >
                   <span className="text-sm leading-none">{tool.icon}</span>
-                  <span className="text-[8px] font-bold uppercase mt-0.5 leading-none">{tool.label}</span>
+                  <span className="text-[8px] font-bold uppercase mt-0.5 leading-none">
+                    {tool.label}
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
 
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-2.5">
           {/* Contextual Action Button */}
           <button
+            type="button"
             onTouchStart={(e) => {
               e.preventDefault();
               sounds.playClick();
@@ -323,17 +319,18 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
               sounds.playClick();
               onInteract();
             }}
-            className={`w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl border-2 flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all ${actionMeta.classes}`}
+            className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-2xl border backdrop-blur-sm flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all ${actionMeta.classes}`}
             title="Interagir com o objetivo próximo"
           >
             <span className="text-xl leading-none">{actionMeta.icon}</span>
-            <span className="text-[9px] font-black tracking-wide uppercase mt-1 leading-none">
+            <span className="text-[9px] font-bold tracking-wide uppercase mt-1 leading-none">
               {actionMeta.label}
             </span>
           </button>
 
-          {/* Primary Action Button (Extinguisher / Turbo / Active Tool) */}
+          {/* Primary Action Button */}
           <button
+            type="button"
             onTouchStart={(e) => {
               e.preventDefault();
               startSpraying();
@@ -352,12 +349,12 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
             onMouseUp={() => {
               stopSpraying();
             }}
-            className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-3xl border-2 flex flex-col items-center justify-center shadow-2xl transition-all ${
+            className={`w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-3xl border flex flex-col items-center justify-center shadow-xl transition-all ${
               isTankEmpty
-                ? 'bg-red-950/90 border-red-400 text-red-200 active:scale-95'
+                ? 'bg-rose-950/90 border-rose-400 text-rose-200 active:scale-95'
                 : isSpraying
-                  ? 'bg-gradient-to-br from-cyan-400 to-blue-600 border-cyan-100 text-white scale-95 ring-4 ring-cyan-400/50'
-                  : 'bg-gradient-to-br from-orange-600 to-red-600 border-orange-300 text-white active:scale-95'
+                  ? 'bg-gradient-to-br from-sky-400 to-blue-600 border-sky-200 text-white scale-95 ring-2 ring-sky-300/60'
+                  : 'bg-gradient-to-br from-orange-500 to-red-600 border-orange-300/80 text-white active:scale-95'
             }`}
             title={activeTool?.label ?? primaryControl?.label ?? 'Extinguir Chamas'}
           >
@@ -368,7 +365,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({
                   ? primaryControl.activeIcon
                   : primaryControl?.icon ?? '🧯'}
             </span>
-            <span className="text-[9px] font-black tracking-wider uppercase mt-1 leading-none">
+            <span className="text-[9px] font-bold tracking-wider uppercase mt-1 leading-none">
               {isTankEmpty
                 ? primaryControl?.emptyLabel ?? 'VAZIO'
                 : isSpraying
