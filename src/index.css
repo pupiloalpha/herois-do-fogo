@@ -82,16 +82,64 @@ html, body {
   will-change: transform, opacity;
 }
 
+@keyframes modal-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-modal-enter {
+  animation: modal-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes star-pop {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.4) rotate(-14deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.22) rotate(6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.06) rotate(0deg);
+  }
+}
+
+.animate-star-pop {
+  animation: star-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-ember-rise {
     animation: none;
     opacity: 0.25;
   }
+  .animate-modal-enter,
+  .animate-star-pop {
+    animation: none;
+  }
 }
 
-/* Clean, Crisp Arcade Title Shadow (Sharp, readable, no blurry neon soup) */
-.text-arcade-title {
-  text-shadow: 0 3px 0 #7c2d12, 0 8px 20px rgba(0, 0, 0, 0.65);
+/* Dual-layer arcade logo stroke/3D extrusion (separated from gradient fill so Safari renders crisply) */
+.hero-wordmark-outline {
+  color: #431407;
+  -webkit-text-stroke: 8px #431407;
+  paint-order: stroke fill;
+  text-shadow: 0 5px 0 #2b0d04, 0 12px 26px rgba(0, 0, 0, 0.72);
+}
+
+@media (min-width: 640px) {
+  .hero-wordmark-outline {
+    -webkit-text-stroke: 11px #431407;
+    text-shadow: 0 6px 0 #2b0d04, 0 16px 32px rgba(0, 0, 0, 0.75);
+  }
 }
 
 /* Refined Tactile Arcade Buttons (Friendly for kids/teens, clean proportions) */
@@ -99,7 +147,7 @@ html, body {
   background: linear-gradient(180deg, #fb923c 0%, #ea580c 100%);
   border-bottom: 3px solid #9a3412;
   box-shadow: 0 6px 14px -3px rgba(234, 88, 12, 0.42);
-  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), filter 0.12s ease;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), filter 0.14s ease;
 }
 .btn-arcade-orange:hover {
   filter: brightness(1.06);
@@ -113,7 +161,7 @@ html, body {
   background: linear-gradient(180deg, #34d399 0%, #059669 100%);
   border-bottom: 3px solid #065f46;
   box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.38);
-  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), filter 0.12s ease;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), filter 0.14s ease;
 }
 .btn-arcade-emerald:hover {
   filter: brightness(1.06);
@@ -127,7 +175,7 @@ html, body {
   background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
   border-bottom: 3px solid #075985;
   box-shadow: 0 6px 14px -3px rgba(14, 165, 233, 0.38);
-  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), filter 0.12s ease;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), filter 0.14s ease;
 }
 .btn-arcade-cyan:hover {
   filter: brightness(1.06);

@@ -26,7 +26,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-slate-900/95 p-5 sm:p-6 shadow-2xl text-center text-slate-100">
+      <div className="animate-modal-enter w-full max-w-md max-h-[92dvh] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-center text-slate-100">
+        <div className="h-1 w-full shrink-0 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500" />
+        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain">
         <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
           <AlertOctagon className="w-6 h-6" />
         </div>
@@ -34,7 +36,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <p className="text-xs font-semibold text-rose-400">
           Alerta de Retirada · {stageLabel}
         </p>
-        <h2 className="text-xl sm:text-2xl font-bold text-white mt-0.5">
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-white mt-0.5">
           {isFlood
             ? 'Operação Aquática Interrompida'
             : isForest
@@ -60,7 +62,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               sounds.playClick();
               onRetry();
             }}
-            className="w-full min-h-[48px] py-3 px-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold text-sm active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full min-h-[48px] py-3 px-4 rounded-xl btn-arcade-orange text-slate-950 font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Tentar {stageLabel} Novamente</span>
@@ -77,6 +79,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             <Home className="w-3.5 h-3.5" />
             <span>Voltar ao Hub</span>
           </button>
+        </div>
         </div>
       </div>
     </div>

@@ -115,10 +115,16 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
       : 'text-amber-300';
 
   const primaryButtonClass = floodSector
-    ? 'bg-sky-400 hover:bg-sky-300 text-slate-950'
+    ? 'btn-arcade-cyan text-slate-950'
     : forestSector
-      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
-      : 'bg-orange-500 hover:bg-orange-400 text-slate-950';
+      ? 'btn-arcade-emerald text-slate-950'
+      : 'btn-arcade-orange text-slate-950';
+
+  const topAccentBarClass = floodSector
+    ? 'from-sky-400 via-cyan-400 to-blue-500'
+    : forestSector
+      ? 'from-emerald-400 via-teal-400 to-green-500'
+      : 'from-amber-400 via-orange-500 to-red-500';
 
   const tacticalNote = floodSector
     ? `Use Espaço (Turbo) na correnteza, [E] para resgatar e desembarque no Abrigo (H).${
@@ -140,7 +146,8 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-lg max-h-[92dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 overflow-hidden">
+      <div className="animate-modal-enter w-full max-w-lg max-h-[92dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 overflow-hidden">
+        <div className={`h-1 w-full bg-gradient-to-r shrink-0 ${topAccentBarClass}`} />
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10 shrink-0">
           <div className="min-w-0">
@@ -148,7 +155,7 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
               {missionTitle ? `${missionTitle} · ` : ''}
               {formattedTerm} {stageNumber}/{totalStages}
             </p>
-            <h2 className="text-lg sm:text-xl font-bold text-white truncate mt-0.5">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-white truncate mt-0.5">
               {stageName}
             </h2>
           </div>
@@ -306,7 +313,7 @@ export const FloorBriefingModal: React.FC<FloorBriefingModalProps> = ({
               sounds.playClick();
               onStartFloor();
             }}
-            className={`w-full min-h-[48px] py-3 px-4 rounded-xl font-bold text-sm sm:text-base transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${primaryButtonClass}`}
+            className={`w-full min-h-[48px] py-3 px-4 rounded-xl font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer ${primaryButtonClass}`}
           >
             <Play className="w-4 h-4 fill-current" />
             <span>Iniciar {formattedTerm} {stageNumber}</span>

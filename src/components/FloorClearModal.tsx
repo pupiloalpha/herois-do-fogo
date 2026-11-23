@@ -57,9 +57,17 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
     };
   }, [onNextFloor, newlyUnlockedMedals.length]);
 
+  const topAccentBarClass = isFlood
+    ? 'from-sky-400 via-cyan-400 to-blue-500'
+    : isForest
+      ? 'from-emerald-400 via-teal-400 to-green-500'
+      : 'from-amber-400 via-orange-500 to-red-500';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-slate-900/95 p-5 sm:p-6 shadow-2xl text-center text-slate-100">
+      <div className="animate-modal-enter w-full max-w-md max-h-[92dvh] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-center text-slate-100">
+        <div className={`h-1 w-full shrink-0 bg-gradient-to-r ${topAccentBarClass}`} />
+        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain">
         <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
           <ShieldCheck className="w-6 h-6" />
         </div>
@@ -67,7 +75,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
         <p className="text-xs font-semibold text-emerald-400">
           Missão Cumprida
         </p>
-        <h2 className="text-xl sm:text-2xl font-bold text-white mt-0.5">
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-white mt-0.5">
           {isFlood
             ? `Setor ${floorNumber} Evacuado`
             : isForest
@@ -82,18 +90,22 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
               : 'Focos extintos, vítimas salvas e riscos neutralizados.'}
         </p>
 
-        {/* Stars */}
-        <div className="flex justify-center items-center gap-2 my-4" aria-label={`${stars} de 3 estrelas`}>
-          {[1, 2, 3].map((s) => (
-            <Star
-              key={s}
-              className={`w-8 h-8 transition-transform duration-200 ${
-                s <= stars
-                  ? 'fill-amber-400 text-amber-400 scale-105'
-                  : 'text-slate-700'
-              }`}
-            />
-          ))}
+        {/* Stars with staggered arcade pop-in */}
+        <div className="flex justify-center items-center gap-2.5 my-4" aria-label={`${stars} de 3 estrelas`}>
+          {[1, 2, 3].map((s) => {
+            const earned = s <= stars;
+            return (
+              <Star
+                key={s}
+                style={earned ? { animationDelay: `${(s - 1) * 140}ms` } : undefined}
+                className={`w-9 h-9 ${
+                  earned
+                    ? 'fill-amber-400 text-amber-400 animate-star-pop drop-shadow-[0_0_8px_rgba(251,191,36,0.45)]'
+                    : 'text-slate-700'
+                }`}
+              />
+            );
+          })}
         </div>
 
         {/* Hairline Score Summary */}
@@ -142,7 +154,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
               sounds.playClick();
               onNextFloor();
             }}
-            className="w-full min-h-[48px] py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm sm:text-base active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full min-h-[48px] py-3 px-4 rounded-xl btn-arcade-emerald text-slate-950 font-display font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>{isFlood || isForest ? `Avançar para o ${floorNumber + 1}º Setor` : `Subir para o ${floorNumber + 1}º Andar`}</span>
             <ArrowRight className="w-4 h-4" />
@@ -161,6 +173,7 @@ export const FloorClearModal: React.FC<FloorClearModalProps> = ({
               <span>Voltar ao Hub</span>
             </button>
           )}
+        </div>
         </div>
       </div>
     </div>

@@ -39,15 +39,23 @@ export const StageSelectModal: React.FC<StageSelectModalProps> = ({
         ? 'text-sky-300'
         : 'text-amber-300';
 
+  const topAccentBarClass =
+    mission.accent === 'emerald'
+      ? 'from-emerald-400 via-teal-400 to-green-500'
+      : mission.accent === 'cyan'
+        ? 'from-sky-400 via-cyan-400 to-blue-500'
+        : 'from-amber-400 via-orange-500 to-red-500';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-2xl max-h-[92dvh] rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 flex flex-col overflow-hidden">
+      <div className="animate-modal-enter w-full max-w-2xl max-h-[92dvh] rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100 flex flex-col overflow-hidden">
+        <div className={`h-1 w-full bg-gradient-to-r shrink-0 ${topAccentBarClass}`} />
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-2xl shrink-0">{mission.badgeEmoji}</span>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-white truncate">
+              <h2 className="font-display text-base sm:text-lg font-bold text-white truncate">
                 {mission.title}
               </h2>
               <p className="text-xs text-slate-400">

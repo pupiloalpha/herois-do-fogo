@@ -47,15 +47,24 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   const isSectorMission = missionId === 'forest_fire' || missionId === 'flood_rescue';
   const stageLabel = isSectorMission ? `Setor ${floorNumber}` : `${floorNumber}º Andar`;
 
+  const topAccentBarClass =
+    missionId === 'flood_rescue'
+      ? 'from-sky-400 via-cyan-400 to-blue-500'
+      : missionId === 'forest_fire'
+        ? 'from-emerald-400 via-teal-400 to-green-500'
+        : 'from-amber-400 via-orange-500 to-red-500';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-sm max-h-[92dvh] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-slate-900/95 p-5 sm:p-6 shadow-2xl text-slate-100">
+      <div className="animate-modal-enter w-full max-w-sm max-h-[92dvh] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-slate-100">
+        <div className={`h-1 w-full shrink-0 bg-gradient-to-r ${topAccentBarClass}`} />
+        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain">
         {/* Header */}
         <div className="text-center pb-4 border-b border-white/10">
           <p className="text-xs font-semibold text-amber-300">
             Jogo pausado · {stageLabel}
           </p>
-          <h2 className="text-xl font-bold text-white mt-1">
+          <h2 className="font-display text-xl font-bold text-white mt-1">
             Pausa Operacional
           </h2>
           <p className="text-xs text-slate-400 mt-1 font-mono tabular-nums">
@@ -167,6 +176,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           <Home className="w-3.5 h-3.5" />
           <span>Voltar ao Hub</span>
         </button>
+        </div>
       </div>
     </div>
   );

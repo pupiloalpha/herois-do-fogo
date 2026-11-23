@@ -63,13 +63,22 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
     };
   }, [newlyUnlockedMedals.length]);
 
+  const topAccentBarClass = isFlood
+    ? 'from-sky-400 via-cyan-400 to-blue-500'
+    : isForest
+      ? 'from-emerald-400 via-teal-400 to-green-500'
+      : 'from-amber-400 via-orange-500 to-red-500';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-3 sm:p-4 select-none overflow-y-auto">
-      <div className="w-full max-w-lg max-h-[92dvh] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-slate-900/95 p-5 sm:p-7 shadow-2xl text-center text-slate-100">
+      <div className="animate-modal-enter w-full max-w-lg max-h-[92dvh] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-2xl text-center text-slate-100">
+        <div className={`h-1.5 w-full shrink-0 bg-gradient-to-r ${topAccentBarClass}`} />
+        <div className="p-5 sm:p-7 overflow-y-auto overscroll-contain">
         {/* Hero Portrait */}
         <img
           src={hero.avatarUrl}
           alt={hero.name}
+          referrerPolicy="no-referrer"
           className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto border-2 border-amber-400/80 shadow-lg mb-3"
         />
 
@@ -82,7 +91,7 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
               : 'Resgate nos 10 Andares Concluído'}
         </p>
 
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mt-1 text-balance">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white mt-1 text-balance">
           {isFlood
             ? 'Cidade Evacuada com Sucesso'
             : isForest
@@ -172,6 +181,7 @@ export const GrandVictoryModal: React.FC<GrandVictoryModalProps> = ({
             <RotateCcw className="w-4 h-4" />
             <span>{isFlood || isForest ? 'Jogar Novamente do 1º Setor' : 'Jogar Novamente do 1º Andar'}</span>
           </button>
+        </div>
         </div>
       </div>
     </div>
